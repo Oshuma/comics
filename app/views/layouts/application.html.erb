@@ -3,6 +3,9 @@
   <head>
     <title>Comics</title>
 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
     <%= stylesheet_link_tag    'application', media: 'all' %>
     <%= javascript_include_tag 'application' %>
 
@@ -10,6 +13,22 @@
   </head>
 
   <body>
-    <%= yield %>
+    <div class="navbar-fixed">
+      <nav>
+        <div class="nav-wrapper">
+          <%= link_to('Comics', root_path, class: 'brand-logo') %>
+
+          <ul class="right hide-on-med-and-down">
+            <li>
+              <%= link_to('Upload', new_comic_path, class: 'waves-effect waves-light btn red') %>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+      <%= yield %>
+    </div>
   </body>
 </html>

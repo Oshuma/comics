@@ -1,31 +1,34 @@
-<h1>New Comic</h1>
+<div class="row">
+  <h5>Upload Comic</h5>
 
-<%= form_for(@comic, html: { multipart: true }) do |f| %>
-  <div>
-    <%= f.label :title %>
-    <%= f.text_field :title %>
-  </div>
-
-  <div>
-    <%= f.label :issue %>
-    <%= f.text_field :issue %>
-  </div>
-
-  <hr/>
-
-  <%= f.fields_for :pages do |pages_form| %>
-    <div>
-      <%= pages_form.label :number %>
-      <%= pages_form.text_field :number %>
+  <%= form_for(@comic, html: { multipart: true }) do |f| %>
+    <div class="input-field col s10">
+      <%= f.label :title %>
+      <%= f.text_field :title %>
     </div>
 
-    <div>
-      <%= pages_form.label :image %>
-      <%= pages_form.file_field :image %>
+    <div class="input-field col s2">
+      <%= f.label :issue %>
+      <%= f.text_field :issue %>
+    </div>
+
+    <div class="file-field input-field col s12">
+      <div class="btn">
+        <span>Archive</span>
+        <input type="file">
+      </div>
+
+      <div class="file-path-wrapper">
+        <input type="text" class="file-path validate">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col s12">
+        <button class="btn waves-effect waves-light" type="submit" name="action">Upload
+          <i class="material-icons right">send</i>
+        </button>
+      </div>
     </div>
   <% end %>
-
-  <div>
-    <%= f.submit 'Save' %>
-  </div>
-<% end %>
+</div>

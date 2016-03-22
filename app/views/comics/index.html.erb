@@ -1,14 +1,24 @@
-<h1>Comics</h1>
-<div><%= link_to('New Comic', new_comic_path) %></div>
+<div class="row">
+  <% @comic.each do |comic| %>
+    <div class="col s3">
+      <div class="card small">
+        <div class="card-image">
+          <%= image_tag(comic.pages.first.image.url) %>
+        </div>
 
-<% @comic.each do |comic| %>
-  <div>
-    <h3>
-      <%= link_to(comic) do %>
-        <%= comic.title %> #<%= comic.issue %>
-      <% end %>
-    </h3>
+        <div class="card-content">
+          <span class="card-title">
+            <%= comic.title %> #<%= comic.issue %>
+          </span>
 
-    <div><em><%= comic.cover_date %></em></div>
-  </div>
-<% end %>
+          <div><em><%= comic.cover_date %></em></div>
+        </div>
+
+        <div class="card-action">
+          <%= link_to('Read', comic) %>
+          <%= link_to('Edit', edit_comic_path(comic)) %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
