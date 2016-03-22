@@ -1,0 +1,14 @@
+<h1>Comics</h1>
+<div><%= link_to('New Comic', new_comic_path) %></div>
+
+<% @comic.each do |comic| %>
+  <div>
+    <h3>
+      <%= link_to(comic) do %>
+        <%= comic.title %> #<%= comic.issue %>
+      <% end %>
+    </h3>
+
+    <div><em><%= comic.cover_date %></em></div>
+  </div>
+<% end %>

@@ -1,0 +1,31 @@
+<h1>New Comic</h1>
+
+<%= form_for(@comic, html: { multipart: true }) do |f| %>
+  <div>
+    <%= f.label :title %>
+    <%= f.text_field :title %>
+  </div>
+
+  <div>
+    <%= f.label :issue %>
+    <%= f.text_field :issue %>
+  </div>
+
+  <hr/>
+
+  <%= f.fields_for :pages do |pages_form| %>
+    <div>
+      <%= pages_form.label :number %>
+      <%= pages_form.text_field :number %>
+    </div>
+
+    <div>
+      <%= pages_form.label :image %>
+      <%= pages_form.file_field :image %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.submit 'Save' %>
+  </div>
+<% end %>
