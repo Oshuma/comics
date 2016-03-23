@@ -6,7 +6,7 @@ class Page
   belongs_to :comic
 
   field :number, type: Integer
-  field :read, type: Mongoid::Boolean
+  field :read, type: Mongoid::Boolean, default: false
 
   has_mongoid_attached_file :image
 

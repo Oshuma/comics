@@ -6,14 +6,13 @@ class ComicsController < ApplicationController
 
   def new
     @comic = Comic.new
-    3.times { @comic.pages.build }
   end
 
   def create
-    @comic = Comic.new(comic_params)
+    @comic = Comic.new
 
-    if @comic.save
-      redirect_to comics_path, notice: 'Comic saved.'
+    if @comic.import_from_archive(comic_params)
+      redirect_to root_path, notice: 'Comic imported.'
     else
       render :new
     end
@@ -30,11 +29,7 @@ class ComicsController < ApplicationController
       :title,
       :issue,
       :cover_date,
-
-      pages_attributes: [
-        :number,
-        :image
-      ]
+      :archive,
     )
   end
 
