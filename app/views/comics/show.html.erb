@@ -1,9 +1,3 @@
-<h1>
-  <%= link_to('Comics', comics_path) %>
-  &rarr;
-  <%= @comic.title %> #<%= @comic.issue %>
-</h1>
-
 <% @comic.pages.each do |page| %>
   <div>
     <%= image_tag page.image.url %>

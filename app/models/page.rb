@@ -8,7 +8,7 @@ class Page
   field :number, type: Integer
   field :read, type: Mongoid::Boolean, default: false
 
-  has_mongoid_attached_file :image
+  has_mongoid_attached_file :image, styles: { thumb: '200x200>' }
 
   validates :number, presence: true, numericality: { only_integer: true }
 
