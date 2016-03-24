@@ -2,7 +2,7 @@ class Comic
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  has_many :pages, dependent: :destroy, autosave: true
+  has_many :pages, dependent: :destroy, autosave: true, order: { number: :asc }
 
   field :title, type: String
   field :issue, type: String
@@ -47,9 +47,7 @@ class Comic
 
       page_number = 1
 
-      Dir.foreach(temp_dir) do |image|
-        next if image == '.' || image == '..'
-
+      Dir['*'].sort.each do |image|
         pages.create!(number: page_number, image: File.open(image))
         page_number += 1
       end
