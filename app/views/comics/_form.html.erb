@@ -2,16 +2,6 @@
   <h5>Upload Comic</h5>
 
   <%= form_for(@comic, html: { multipart: true }) do |f| %>
-    <div class="input-field col s10">
-      <%= f.label :title %>
-      <%= f.text_field :title %>
-    </div>
-
-    <div class="input-field col s2">
-      <%= f.label :issue %>
-      <%= f.text_field :issue %>
-    </div>
-
     <div class="file-field input-field col s12">
       <div class="btn">
         <span>Archive</span>

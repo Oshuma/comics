@@ -8,12 +8,16 @@ class Page
   field :number, type: Integer
   field :read, type: Mongoid::Boolean, default: false
 
-  has_mongoid_attached_file :image, styles: { thumb: '200x200>' }
+  has_mongoid_attached_file :image, styles: { thumb: '300x300>' }
 
   validates :number, presence: true, numericality: { only_integer: true }
 
   validates_attachment :image,
     presence: true,
     content_type: { content_type: ['image/jpg', 'image/jpeg', 'image/gif', 'image/png'] }
+
+  def self.first_unread
+    where(read: false).first
+  end
 
 end

@@ -1,5 +1,11 @@
-<% @comic.pages.each do |page| %>
-  <div>
-    <%= image_tag page.image.url %>
-  </div>
-<% end %>
+<div class="row">
+  <% @comic.pages.each do |page| %>
+    <div class="col s3">
+      <div class="card">
+        <div class="card-image">
+          <%= link_to(image_tag(page.image.url(:thumb)), [@comic, page]) %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

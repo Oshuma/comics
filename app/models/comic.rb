@@ -4,19 +4,8 @@ class Comic
 
   has_many :pages, dependent: :destroy, autosave: true, order: { number: :asc }
 
-  field :title, type: String
-  field :issue, type: String
-  field :cover_date, type: Date
-
-  validates :title, presence: true
-  validates :issue, presence: true
-
 
   def import_from_archive(comic_params)
-    self.title = comic_params[:title]
-    self.issue = comic_params[:issue]
-    self.cover_date = comic_params[:cover_date]
-
     if save
       create_pages_from_archive(comic_params[:archive])
     else
