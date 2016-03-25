@@ -13,19 +13,17 @@
   </head>
 
   <body>
-    <div class="navbar-fixed">
-      <nav>
-        <div class="nav-wrapper">
-          <%= link_to('Comics', root_path, class: 'brand-logo') %>
+    <nav>
+      <div class="nav-wrapper">
+        <%= link_to('Comics', root_path, class: 'brand-logo') %>
 
-          <ul class="right hide-on-med-and-down">
-            <li>
-              <%= link_to('Upload', new_comic_path, class: 'waves-effect waves-light btn red') %>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </div>
+        <ul class="right hide-on-med-and-down">
+          <li>
+            <%= link_to('Upload', new_comic_path, class: 'waves-effect waves-light btn red') %>
+          </li>
+        </ul>
+      </div>
+    </nav>
 
     <div class="container">
       <%= yield %>

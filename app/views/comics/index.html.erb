@@ -1,7 +1,7 @@
 <div class="row">
   <% @comic.each do |comic| %>
     <div class="col s3">
-      <div class="card">
+      <div class="card hoverable">
         <div class="card-image">
           <%= link_to(image_tag(comic.pages.first.image.url(:thumb)), comic) %>
         </div>

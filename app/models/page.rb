@@ -24,4 +24,12 @@ class Page
     where(read: false).first
   end
 
+  def previous_page
+    comic.pages.where(number: (number - 1)).first
+  end
+
+  def next_page
+    comic.pages.where(number: (number + 1)).first
+  end
+
 end
