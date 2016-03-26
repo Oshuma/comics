@@ -1,32 +1,34 @@
-<div class="row">
-  <% @comic.each do |comic| %>
-    <div class="col s3">
-      <div class="card hoverable">
-        <div class="card-image">
-          <%= link_to(image_tag(comic.pages.first.image.url(:thumb)), comic) %>
-        </div>
+<% @comic.each_slice(4) do |row| %>
+  <div class="row">
+    <% row.each do |comic| %>
+        <div class="col s3">
+          <div class="card hoverable">
+            <div class="card-image">
+              <%= link_to(image_tag(comic.pages.first.image.url(:thumb)), comic) %>
+            </div>
 
-        <div class="card-content">
-          <span class="card-title activator"><i class="material-icons right">more_vert</i></span>
+            <div class="card-content">
+              <span class="card-title activator"><i class="material-icons right">more_vert</i></span>
 
-          <div>
-            <% if comic.read? %>
-              <i class="fa fa-lg fa-check green-text"></i>
-              Pages: <%= comic.pages.count %>
-            <% else %>
-              Page: <%= comic.pages.first_unread.number %> / <%= comic.pages.count %>
-            <% end %>
+              <div>
+                <% if comic.read? %>
+                  <i class="fa fa-lg fa-check green-text"></i>
+                  Pages: <%= comic.pages.count %>
+                <% else %>
+                  Page: <%= comic.pages.first_unread.number %> / <%= comic.pages.count %>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="card-reveal">
+              <span class="card-title"><i class="material-icons right">close</i></span>
+
+              <div>
+                <%= link_to('Delete', comic, class: 'waves-effect waves-light btn red', method: :delete, data: { confirm: 'Delete this comic?' }) %>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div class="card-reveal">
-          <span class="card-title"><i class="material-icons right">close</i></span>
-
-          <div>
-            <%= link_to('Delete', comic, class: 'waves-effect waves-light btn red', method: :delete, data: { confirm: 'Delete this comic?' }) %>
-          </div>
-        </div>
-      </div>
-    </div>
-  <% end %>
-</div>
+    <% end %>
+  </div>
+<% end %>
