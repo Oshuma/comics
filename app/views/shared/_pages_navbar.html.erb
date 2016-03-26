@@ -1,0 +1,32 @@
+<div class="navbar-fixed">
+  <nav>
+    <div class="nav-wrapper">
+      <ul class="left">
+        <li>
+          <%= link_to(root_path) do %>
+            <i class="material-icons">view_carousel</i>
+          <% end %>
+        </li>
+
+        <li class="<%= @page.previous_page.present? ? 'waves-effect' : 'disabled' %>">
+          <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put) do %>
+            <i class="material-icons">chevron_left</i>
+          <% end %>
+        </li>
+      </ul>
+
+      <div class="brand-logo center">
+        <%= @page.number %> / <%= @comic.pages.count %>
+      </div>
+
+      <ul class="right">
+        <li class="<%= @page.next_page.present? ? 'waves-effect' : 'disabled' %>">
+          <%# TODO: Link to next comic if on last page. %>
+          <%= link_to(next_page_comic_page_path(@comic, @page), method: :put) do %>
+            <i class="material-icons">chevron_right</i>
+          <% end %>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</div>

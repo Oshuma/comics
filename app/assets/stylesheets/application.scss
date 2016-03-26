@@ -17,3 +17,7 @@ $primary-color: color("blue", "lighten-2") !default;
  *= require_tree .
  *= require_self
  */
+
+.viewer {
+  width: 100%;
+}
