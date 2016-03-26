@@ -2,16 +2,20 @@
   <nav>
     <div class="nav-wrapper">
       <ul class="left">
+        <li class="<%= @page.previous_page.present? ? 'waves-effect' : 'disabled' %>">
+          <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put) do %>
+            <i class="material-icons">chevron_left</i>
+          <% end %>
+        </li>
+
         <li>
           <%= link_to(root_path) do %>
             <i class="material-icons">view_carousel</i>
           <% end %>
         </li>
 
-        <li class="<%= @page.previous_page.present? ? 'waves-effect' : 'disabled' %>">
-          <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put) do %>
-            <i class="material-icons">chevron_left</i>
-          <% end %>
+        <li>
+          <%= @comic.filename %>
         </li>
       </ul>
 

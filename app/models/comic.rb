@@ -4,8 +4,14 @@ class Comic
 
   has_many :pages, dependent: :destroy, autosave: true, order: { number: :asc }
 
+  field :filename, type: String
+
+  validates :filename, presence: true
+
 
   def import_from_archive(comic_params)
+    self.filename = comic_params[:archive].original_filename
+
     if save
       create_pages_from_archive(comic_params[:archive])
     else

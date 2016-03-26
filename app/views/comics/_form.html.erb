@@ -1,7 +1,5 @@
-<div class="row">
-  <h5>Upload Comic</h5>
-
-  <%= form_for(@comic, html: { multipart: true }) do |f| %>
+<%= form_for(@comic, html: { multipart: true }) do |f| %>
+  <div class="row">
     <div class="file-field input-field col s12">
       <div class="btn">
         <span>Archive</span>
@@ -12,13 +10,13 @@
         <input type="text" class="file-path validate">
       </div>
     </div>
+  </div>
 
-    <div class="row">
-      <div class="col s12">
-        <button class="btn waves-effect waves-light" type="submit" name="action">Upload
-          <i class="material-icons right">send</i>
-        </button>
-      </div>
+  <div class="row">
+    <div class="col s12">
+      <button class="btn waves-effect waves-light" type="submit" name="action">Upload
+        <i class="material-icons right">send</i>
+      </button>
     </div>
-  <% end %>
-</div>
+  </div>
+<% end %>
