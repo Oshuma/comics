@@ -49,4 +49,11 @@ class Page
     update(read: true) ? next_page : false
   end
 
+  # Marks this page and all next ones as unread; mark all previous pages as read.
+  def set_as_current!
+    comic.pages.where(:number.lt => number).update_all(read: true)
+    comic.pages.where(:number.gt => number).update_all(read: false)
+    update(read: false)
+  end
+
 end

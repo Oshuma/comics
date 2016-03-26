@@ -3,6 +3,7 @@ class PagesController < ApplicationController
   before_action :set_page
 
   def show
+    @page.set_as_current!
   end
 
   # PUT next_page
