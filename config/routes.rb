@@ -55,7 +55,12 @@ Rails.application.routes.draw do
   #   end
 
   resources :comics do
-    resources :pages
+    resources :pages do
+      member do
+        put :next_page
+        put :previous_page
+      end
+    end
   end
 
   root 'comics#index'

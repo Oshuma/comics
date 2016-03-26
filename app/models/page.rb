@@ -28,8 +28,25 @@ class Page
     comic.pages.where(number: (number - 1)).first
   end
 
+  # Marks this page as unread and returns the previous page or false.
+  def previous!
+    if previous_page
+      previous_page.update(read: false)
+      comic.pages.where(:number.gt => number).update_all(read: false)
+
+      previous_page
+    else
+      false
+    end
+  end
+
   def next_page
     comic.pages.where(number: (number + 1)).first
+  end
+
+  # Marks this page as read and returns the next page or false.
+  def next!
+    update(read: true) ? next_page : false
   end
 
 end

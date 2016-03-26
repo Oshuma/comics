@@ -1,11 +1,11 @@
 <div class="center-align">
-  <%= image_tag(@page.image.url(:viewer), class: 'responsive-img') %>
+  <%= image_tag(@page.image.url(:viewer)) %>
 </div>
 
 <div class="center-align">
   <ul class="pagination">
     <li class="<%= @page.previous_page.present? ? 'waves-effect' : 'disabled' %>">
-      <%= link_to([@comic, @page.previous_page]) do %>
+      <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put) do %>
         <i class="material-icons">chevron_left</i>
       <% end %>
     </li>
@@ -15,7 +15,8 @@
     </li>
 
     <li class="<%= @page.next_page.present? ? 'waves-effect' : 'disabled' %>">
-      <%= link_to([@comic, @page.next_page]) do %>
+      <%# TODO: Link to next comic if on last page. %>
+      <%= link_to(next_page_comic_page_path(@comic, @page), method: :put) do %>
         <i class="material-icons">chevron_right</i>
       <% end %>
     </li>
