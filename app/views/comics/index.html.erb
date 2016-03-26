@@ -12,6 +12,7 @@
           <div>
             <% if comic.read? %>
               <i class="fa fa-lg fa-check green-text"></i>
+              Pages: <%= comic.pages.count %>
             <% else %>
               Page: <%= comic.pages.first_unread.number %> / <%= comic.pages.count %>
             <% end %>
@@ -20,7 +21,10 @@
 
         <div class="card-reveal">
           <span class="card-title"><i class="material-icons right">close</i></span>
-          <p>Pages: <%= comic.pages.count %></p>
+
+          <div>
+            <%= link_to('Delete', comic, class: 'waves-effect waves-light btn red', method: :delete, data: { confirm: 'Delete this comic?' }) %>
+          </div>
         </div>
       </div>
     </div>
