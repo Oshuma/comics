@@ -13,6 +13,10 @@ class Comic
     end
   end
 
+  def read?
+    pages.all? { |page| page.read? }
+  end
+
   private
 
   def create_pages_from_archive(archive_file)

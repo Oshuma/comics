@@ -6,8 +6,21 @@
           <%= link_to(image_tag(comic.pages.first.image.url(:thumb)), comic) %>
         </div>
 
-        <div class="card-action">
-          actions go here
+        <div class="card-content">
+          <span class="card-title activator"><i class="material-icons right">more_vert</i></span>
+
+          <div>
+            <% if comic.read? %>
+              <i class="fa fa-lg fa-check green-text"></i>
+            <% else %>
+              Page: <%= comic.pages.first_unread.number %> / <%= comic.pages.count %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="card-reveal">
+          <span class="card-title"><i class="material-icons right">close</i></span>
+          <p>Pages: <%= comic.pages.count %></p>
         </div>
       </div>
     </div>
