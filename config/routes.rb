@@ -55,6 +55,8 @@ Rails.application.routes.draw do
   #   end
 
   resources :comics do
+    get :read, on: :member
+
     resources :pages do
       member do
         put :next_page

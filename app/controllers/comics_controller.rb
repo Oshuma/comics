@@ -20,9 +20,15 @@ class ComicsController < ApplicationController
 
   def show
     @comic = Comic.find(params[:id])
+  end
+
+  def read
+    @comic = Comic.find(params[:id])
 
     if @first_unread_page = @comic.pages.first_unread
       redirect_to comic_page_path(@comic, @first_unread_page)
+    else
+      redirect_to comic_path(@comic)
     end
   end
 
