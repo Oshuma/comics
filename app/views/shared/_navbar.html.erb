@@ -5,7 +5,9 @@
 
       <ul class="right hide-on-med-and-down">
         <li>
-          <%= link_to('Upload', new_comic_path, class: 'waves-effect waves-light btn red') %>
+          <%= link_to(new_comic_path) do %>
+            <i class="material-icons">open_in_browser</i>
+          <% end %>
         </li>
       </ul>
     </div>

@@ -8,24 +8,20 @@
             </div>
 
             <div class="card-content">
-              <span class="card-title activator"><i class="material-icons right">more_vert</i></span>
-
               <div>
-                <% if comic.read? %>
-                  <i class="fa fa-lg fa-check green-text"></i>
-                  Pages: <%= comic.pages.count %>
-                <% else %>
-                  Page: <%= comic.pages.first_unread.number %> / <%= comic.pages.count %>
+                <%= link_to(comic, class: 'waves-effect waves-light btn-floating btn-large blue') do %>
+                  <i class="material-icons">view_carousel</i>
                 <% end %>
-              </div>
-            </div>
 
-            <div class="card-reveal">
-              <span class="card-title"><i class="material-icons right">close</i></span>
+                <%= link_to(comic, class: 'waves-effect waves-light btn-floating btn-large red', method: :delete, data: { confirm: 'Delete this comic?' }) do %>
+                  <i class="material-icons">delete</i>
+                <% end %>
 
-              <div>
-                <%= link_to('Index', comic, class: 'waves-effect waves-light btn-large') %>
-                <%= link_to('Delete', comic, class: 'waves-effect waves-light btn-large red', method: :delete, data: { confirm: 'Delete this comic?' }) %>
+                <span class="right">
+                  <% if comic.read? %>
+                    <i class="fa fa-lg fa-check green-text"></i>
+                  <% end %>
+                </span>
               </div>
             </div>
           </div>
