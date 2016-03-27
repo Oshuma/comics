@@ -1,7 +1,15 @@
 <div class="navbar-fixed">
   <nav>
     <div class="nav-wrapper">
-      <%= link_to('Comics', root_path, class: 'brand-logo') %>
+      <ul>
+        <li>
+          <%= link_to(root_path) do %>
+            <i class="material-icons">view_carousel</i>
+          <% end %>
+        </li>
+
+        <%= content_for(:navbar) %>
+      </ul>
 
       <ul class="right hide-on-med-and-down">
         <li>

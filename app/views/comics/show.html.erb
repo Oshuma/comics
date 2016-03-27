@@ -1,3 +1,7 @@
+<% content_for(:navbar) do %>
+  <li><%= link_to(@comic.filename, @comic) %></li>
+<% end %>
+
 <% @comic.pages.each_slice(4) do |row| %>
   <div class="row">
     <% row.each do |page| %>
