@@ -73,4 +73,9 @@ Rails.application.configure do
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = ::Logger::Formatter.new
+
+  config.user = {
+    username: 'oshuma',
+    password: '044c5a52e86807b1935214f9a1d11e542a932e77a322398a0762ec7bd56a618c0a8def5a78cf4699cbf38d34924482b07dc3cb2bc990c6af72b675c4509690b2'
+  }
 end
