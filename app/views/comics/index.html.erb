@@ -1,7 +1,7 @@
-<% @comic.each_slice(4) do |row| %>
+<% @comic.each_slice(3) do |row| %>
   <div class="row">
     <% row.each do |comic| %>
-        <div class="col s3">
+        <div class="col s4">
           <div class="card hoverable">
             <div class="card-image">
               <%= link_to(image_tag(comic.pages.first.image.url(:thumb)), read_comic_path(comic)) %>
@@ -24,8 +24,8 @@
               <span class="card-title"><i class="material-icons right">close</i></span>
 
               <div>
-                <%= link_to('Index', comic, class: 'waves-effect waves-light btn') %>
-                <%= link_to('Delete', comic, class: 'waves-effect waves-light btn red', method: :delete, data: { confirm: 'Delete this comic?' }) %>
+                <%= link_to('Index', comic, class: 'waves-effect waves-light btn-large') %>
+                <%= link_to('Delete', comic, class: 'waves-effect waves-light btn-large red', method: :delete, data: { confirm: 'Delete this comic?' }) %>
               </div>
             </div>
           </div>
