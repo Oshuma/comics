@@ -11,11 +11,15 @@ class ComicsController < ApplicationController
   def create
     @comic = Comic.new
 
-    if @comic.import_from_archive(comic_params)
-      redirect_to root_path, notice: 'Comic imported.'
-    else
+    params[:comics].each do |comic_params|
+      comic = Comic.new
+      next if comic.import_from_archive(comic_params)
+
+      # If there's a problem importing, just render :new
       render :new
     end
+
+    redirect_to root_path, notice: 'Comics imported.'
   end
 
   def show
@@ -36,17 +40,6 @@ class ComicsController < ApplicationController
     @comic = Comic.find(params[:id])
     @comic.destroy
     redirect_to comics_path, notice: 'Comic deleted.'
-  end
-
-  private
-
-  def comic_params
-    params.require(:comic).permit(
-      :title,
-      :issue,
-      :cover_date,
-      :archive,
-    )
   end
 
 end
