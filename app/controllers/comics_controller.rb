@@ -12,6 +12,7 @@ class ComicsController < ApplicationController
     @comic = Comic.new
 
     params[:comics].each do |comic_params|
+      # TODO: Move this to a worker.
       comic = Comic.new
       next if comic.import_from_archive(comic_params)
 

@@ -23,6 +23,11 @@ class Comic
     pages.all? { |page| page.read? }
   end
 
+  # Returns true if there is at least one read page.
+  def reading?
+    pages.any? { |page| page.read? }
+  end
+
   private
 
   def create_pages_from_archive(archive_file)

@@ -20,6 +20,8 @@
                 <span class="right">
                   <% if comic.read? %>
                     <i class="medium material-icons green-text">done</i>
+                  <% elsif comic.reading? %>
+                    <i class="medium material-icons">visibility</i>
                   <% end %>
                 </span>
               </div>
