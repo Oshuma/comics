@@ -74,6 +74,10 @@ GEM
     jbuilder (2.4.1)
       activesupport (>= 3.0.0, < 5.1)
       multi_json (~> 1.2)
+    jquery-fileupload-rails (0.4.6)
+      actionpack (>= 3.1)
+      railties (>= 3.1)
+      sass (>= 3.2)
     jquery-rails (4.1.1)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
@@ -205,6 +209,7 @@ DEPENDENCIES
   capistrano-rbenv
   foreman
   jbuilder (~> 2.0)
+  jquery-fileupload-rails
   jquery-rails
   materialize-sass
   mongoid (~> 5.1.0)

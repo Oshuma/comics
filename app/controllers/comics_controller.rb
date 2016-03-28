@@ -1,7 +1,7 @@
 class ComicsController < ApplicationController
 
   def index
-    @comic = Comic.all
+    @comic = Comic.order(filename: :asc)
   end
 
   def new
