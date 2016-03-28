@@ -13,9 +13,9 @@
                   <i class="material-icons">view_carousel</i>
                 <% end %>
 
-                <%= link_to(comic, class: 'waves-effect waves-light btn-floating btn-large red', method: :delete, data: { confirm: 'Delete this comic?' }) do %>
+                <button type="button" class="waves-effect waves-light btn-floating btn-large red activator">
                   <i class="material-icons">delete</i>
-                <% end %>
+                </button>
 
                 <span class="right">
                   <% if comic.read? %>
@@ -25,6 +25,14 @@
                   <% end %>
                 </span>
               </div>
+            </div>
+
+            <div class="card-reveal">
+              <span class="card-title grey-text text-darken-4"><i class="material-icons right">close</i></span>
+
+              <%= link_to(comic, class: 'waves-effect waves-light btn red', method: :delete) do %>
+                <i class="material-icons left">delete</i> Delete
+              <% end %>
             </div>
           </div>
         </div>

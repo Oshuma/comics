@@ -40,7 +40,7 @@ class ComicsController < ApplicationController
   def destroy
     @comic = current_user.comics.find(params[:id])
     @comic.destroy
-    redirect_to comics_path, notice: 'Comic deleted.'
+    redirect_to root_path, notice: 'Comic deleted.'
   end
 
 end
