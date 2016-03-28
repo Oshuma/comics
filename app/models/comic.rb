@@ -35,6 +35,8 @@ class Comic
     case File.extname(tempfile)
     when '.cbr'
       create_from_cbr(tempfile)
+    when '.cbz'
+      create_from_cbz(tempfile)
     else
       raise StandardError.new("Unknown file extension: #{tempfile}")
     end
@@ -43,11 +45,25 @@ class Comic
   def create_from_cbr(tempfile)
     raise StandardError.new("unrar not found") if `which unrar`.chomp.empty?
 
+    inside_temp_dir(tempfile) do
+      `unrar e #{tempfile.path}`
+    end
+  end
+
+  def create_from_cbz(tempfile)
+    raise StandardError.new("unzip not found") if `which unzip`.chomp.empty?
+
+    inside_temp_dir(tempfile) do
+      `unzip -j #{tempfile.path}`
+    end
+  end
+
+  def inside_temp_dir(tempfile, &block)
     temp_dir = Rails.root.join('tmp', File.basename(tempfile.path))
     Dir.mkdir(temp_dir)
 
     Dir.chdir(temp_dir) do
-      `unrar e #{tempfile.path}`
+      yield
 
       page_number = 1
 
