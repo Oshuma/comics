@@ -21,6 +21,7 @@ $(document).ready(function() {
 
     var data = files[index];
     var context = data.context;
+    context.find('.start-button').text('Uploading...').prop('disabled', true);
 
     data.uploadedBytes = parseInt($(context).attr('uploadedBytes'), 10);
     data.data = null;
@@ -60,7 +61,7 @@ $(document).ready(function() {
       var filename = getFilename(data);
 
       var index = $('#upload-results li').length;
-      var startButton = $('<button type="button" class="btn" data-file="' + index + '">Start</button>');
+      var startButton = $('<button type="button" class="btn start-button" data-file="' + index + '">Start</button>');
       var cancelButton = $('<button type="button" class="btn grey" data-file="' + index + '">Cancel</button>');
 
       startButton.on('click', function() {
@@ -90,6 +91,7 @@ $(document).ready(function() {
     },
 
     done: function(e, data) {
+      // FIXME: Remove uploaded files from the 'files' array, because it uploads a dupe if more are added.
       data.context.find('.actions').remove();
       data.context.find('.progress').after('<i class="material-icons green-text">done</i>');
     },
