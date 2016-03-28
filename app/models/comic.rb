@@ -2,6 +2,7 @@ class Comic
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  belongs_to :user
   has_many :pages, dependent: :destroy, autosave: true, order: { number: :asc }
 
   field :filename, type: String

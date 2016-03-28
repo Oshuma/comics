@@ -32,7 +32,7 @@ class PagesController < ApplicationController
   private
 
   def set_page
-    @comic = Comic.find(params[:comic_id])
+    @comic = current_user.comics.find(params[:comic_id])
     @page = @comic.pages.find(params[:id])
   end
 

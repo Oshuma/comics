@@ -1,4 +1,4 @@
-<%= form_for(Comic.new, html: { multipart: true }) do |f| %>
+<%= form_for(current_user.comics.build, html: { multipart: true }) do |f| %>
   <div class="row">
     <div class="file-field input-field col s12">
       <div class="btn blue">

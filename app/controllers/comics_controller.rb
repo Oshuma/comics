@@ -1,7 +1,7 @@
 class ComicsController < ApplicationController
 
   def index
-    @comic = Comic.order(filename: :asc)
+    @comic = current_user.comics.order(filename: :asc)
   end
 
   def new
@@ -10,7 +10,7 @@ class ComicsController < ApplicationController
   def create
     params[:comics].each do |comic_params|
       # TODO: Move this to a worker.
-      comic = Comic.new
+      comic = current_user.comics.build
       next if comic.import_from_archive(comic_params)
 
       # If there's a problem importing, redirect to the uploader.
@@ -24,11 +24,11 @@ class ComicsController < ApplicationController
   end
 
   def show
-    @comic = Comic.find(params[:id])
+    @comic = current_user.comics.find(params[:id])
   end
 
   def read
-    @comic = Comic.find(params[:id])
+    @comic = current_user.comics.find(params[:id])
 
     if @first_unread_page = @comic.pages.first_unread
       redirect_to comic_page_path(@comic, @first_unread_page)
@@ -38,7 +38,7 @@ class ComicsController < ApplicationController
   end
 
   def destroy
-    @comic = Comic.find(params[:id])
+    @comic = current_user.comics.find(params[:id])
     @comic.destroy
     redirect_to comics_path, notice: 'Comic deleted.'
   end
