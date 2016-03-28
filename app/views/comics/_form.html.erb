@@ -1,8 +1,8 @@
-<%= form_for(@comic, html: { multipart: true }) do |f| %>
+<%= form_for(Comic.new, html: { multipart: true }) do |f| %>
   <div class="row">
     <div class="file-field input-field col s12">
       <div class="btn">
-        <span>Upload <i class="material-icons right">send</i></span>
+        <span>Choose Files</span>
         <input
            id="comic-upload"
            type="file"
@@ -11,6 +11,16 @@
            data-url="<%= comics_path %>"
          />
       </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col s12">
+      <button id="start-upload" type="button">Start</button>
+      <button id="stop-uploads" type="button">Stop</button>
+
+      <br/>
+      <span>Total progress: <span id="total-progress">0%</span></span>
     </div>
   </div>
 <% end %>

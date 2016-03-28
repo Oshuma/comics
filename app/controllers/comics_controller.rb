@@ -5,22 +5,22 @@ class ComicsController < ApplicationController
   end
 
   def new
-    @comic = Comic.new
   end
 
   def create
-    @comic = Comic.new
-
     params[:comics].each do |comic_params|
       # TODO: Move this to a worker.
       comic = Comic.new
       next if comic.import_from_archive(comic_params)
 
-      # If there's a problem importing, just render :new
-      render :new
+      # If there's a problem importing, redirect to the uploader.
+      redirect_to new_comic_path
     end
 
-    redirect_to root_path, notice: 'Comics imported.'
+    respond_to do |format|
+      # format.html { redirect_to root_path, notice: 'Comics imported.' }
+      format.json { render json: @comics }
+    end
   end
 
   def show
