@@ -31,6 +31,8 @@ $(document).ready(function() {
     $(files).each(function(index, file) {
       cancelUpload(index);
     });
+
+    $('#upload-results').addClass('hide');
   };
 
   var startAllUploads = function() {
@@ -77,6 +79,7 @@ $(document).ready(function() {
       row.find('.filename').text(filename);
       row.find('.progress').replaceWith(createProgressBar(progress));
       row.find('.actions').append(startButton);
+      row.find('.actions').append('&nbsp;');
       row.find('.actions').append(cancelButton);
 
       row.appendTo('#upload-results');
