@@ -1,23 +1,31 @@
 <div class="navbar-fixed">
   <nav>
     <div class="nav-wrapper">
-      <ul>
-        <li>
-          <%= link_to(root_path) do %>
-            <i class="material-icons">view_carousel</i>
-          <% end %>
-        </li>
+      <% if user_signed_in? %>
+        <ul>
+          <li>
+            <%= link_to(root_path) do %>
+              <i class="material-icons">view_carousel</i>
+            <% end %>
+          </li>
 
-        <%= content_for(:navbar) %>
-      </ul>
+          <%= content_for(:navbar) %>
+        </ul>
 
-      <ul class="right hide-on-med-and-down">
-        <li>
-          <%= link_to(new_comic_path) do %>
-            <i class="material-icons">open_in_browser</i>
-          <% end %>
-        </li>
-      </ul>
+        <ul class="right">
+          <li class="hide-on-med-and-down">
+            <%= link_to(new_comic_path) do %>
+              <i class="material-icons">open_in_browser</i>
+            <% end %>
+          </li>
+
+          <li>
+            <%= link_to(destroy_user_session_path, method: :delete) do %>
+              <i class="material-icons">power_settings_new</i>
+            <% end %>
+          </li>
+        </ul>
+      <% end %>
     </div>
   </nav>
 </div>
