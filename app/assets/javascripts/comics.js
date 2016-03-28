@@ -10,11 +10,15 @@ $(document).ready(function() {
 
   var cancelUpload = function(index) {
     if (files[index]) {
-      files[index].jqXHR.abort();
+      if (files[index].jqXHR) files[index].jqXHR.abort();
+      files[index].context.fadeOut();
+      files[index] = null;
     }
   };
 
   var startUpload = function(index) {
+    if (files[index] == null) return;
+
     var data = files[index];
     var context = data.context;
 
@@ -54,27 +58,26 @@ $(document).ready(function() {
       var filename = getFilename(data);
 
       var index = $('#upload-results li').length;
-      var cancelButton = $('<button type="button" data-file="' + index + '">Cancel Upload</button>');
-      var startButton = $('<button type="button" data-file="' + index + '">Start Upload</button>');
-
-      cancelButton.on('click', function() {
-        cancelUpload($(this).attr('data-file'));
-      });
+      var startButton = $('<button type="button" class="btn" data-file="' + index + '">Start</button>');
+      var cancelButton = $('<button type="button" class="btn grey" data-file="' + index + '">Cancel</button>');
 
       startButton.on('click', function() {
         startUpload($(this).attr('data-file'));
       });
 
+      cancelButton.on('click', function() {
+        cancelUpload($(this).attr('data-file'));
+      });
+
       var row = $('<li class="collection-item"/>');
       row.append($('<div class="filename"/>'));
       row.append($('<div class="progress"/>').append($('<div class="determinate"/>')));
-      row.append($('<span class="start"/>'));
-      row.append($('<span class="cancel"/>'));
+      row.append($('<div class="actions"/>'));
 
       row.find('.filename').text(filename);
       row.find('.progress').replaceWith(createProgressBar(progress));
-      row.find('.start').append(startButton);
-      row.find('.cancel').append(cancelButton);
+      row.find('.actions').append(startButton);
+      row.find('.actions').append(cancelButton);
 
       row.appendTo('#upload-results');
       $('#upload-results').removeClass('hide');
@@ -84,7 +87,8 @@ $(document).ready(function() {
     },
 
     done: function(e, data) {
-      console.log('done', data);
+      data.context.find('.actions').remove();
+      data.context.find('.progress').after('<i class="material-icons green-text">done</i>');
     },
 
     progress: function(e, data) {
@@ -95,27 +99,8 @@ $(document).ready(function() {
 
     progressall: function(e, data) {
       var progress = calculateProgress(data);
-      $('#total-progress').text(progress);
+      $('#total-progress').css('width', progress);
     },
-
-    // progressall: function(e, data) {
-    //   var progress = parseInt(data.loaded / data.total * 100, 10);
-    //   var progressBar = $('.progress .determinate');
-    //   $('.progress').removeClass('hide');
-    //   progressBar.css('width', progress + '%');
-    // },
-
-    // done: function(e, data) {
-    //   $.each(data.files, function(index, file) {
-    //     $('#upload-results').removeClass('hide');
-    //     var item = $('<li class="collection-item avatar"/>');
-    //     item
-    //       .append(file.name)
-    //       .append($('<i class="material-icons circle green">done</i>'));
-
-    //     $('#upload-results').append(item);
-    //   });
-    // },
   });
 
   $('#start-upload').on('click', function() {

@@ -1,7 +1,7 @@
 <%= form_for(Comic.new, html: { multipart: true }) do |f| %>
   <div class="row">
     <div class="file-field input-field col s12">
-      <div class="btn">
+      <div class="btn blue">
         <span>Choose Files</span>
         <input
            id="comic-upload"
@@ -16,17 +16,14 @@
 
   <div class="row">
     <div class="col s12">
-      <button id="start-upload" type="button">Start</button>
-      <button id="stop-uploads" type="button">Stop</button>
-
-      <br/>
-      <span>Total progress: <span id="total-progress">0%</span></span>
+      <button id="start-upload" type="button" class="btn">Start</button>
+      <button id="stop-uploads" type="button" class="btn grey">Stop</button>
     </div>
   </div>
 <% end %>
 
-<div class="progress hide">
-  <div class="determinate" style="width: 0%;"></div>
+<div class="progress">
+  <div id="total-progress" class="determinate" style="width: 0%;"></div>
 </div>
 
 <div class="row">
