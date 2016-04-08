@@ -69,8 +69,13 @@ class Comic
       page_number = 1
 
       Dir['*'].sort.each do |image|
-        pages.create!(number: page_number, image: File.open(image))
-        page_number += 1
+        begin
+          pages.create!(number: page_number, image: File.open(image))
+          page_number += 1
+        rescue Mongoid::Errors::Validations
+          # This is mainly here in case the archive has some dumbass 'Thumbs.db' file that isn't an image.
+          next
+        end
       end
     end
 
