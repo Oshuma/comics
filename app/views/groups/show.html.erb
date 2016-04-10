@@ -1,5 +1,10 @@
 <% content_for(:navbar) do %>
-  <li><%= @group.name %></li>
+  <li><%= link_to(@group.name, @group) %></li>
+  <li class="hide-on-med-and-down">
+    <%= link_to(@group, method: :delete, data: { confirm: 'Delete this group?' }) do %>
+      <i class="material-icons">delete</i>
+    <% end %>
+  </li>
 <% end %>
 
 <% @comics.each_slice(3) do |row| %>
