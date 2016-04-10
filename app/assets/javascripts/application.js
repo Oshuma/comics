@@ -15,3 +15,8 @@
 //= require jquery-fileupload/basic
 //= require materialize-sprockets
 //= require_tree .
+
+$(document).ready(function() {
+  $('select').material_select();
+  $('.modal-trigger').leanModal();
+});

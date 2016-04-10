@@ -1,3 +1,7 @@
+<% content_for(:navbar) do %>
+  <li><%= @group.name %></li>
+<% end %>
+
 <% @comics.each_slice(3) do |row| %>
   <div class="row">
     <% row.each do |comic| %>

@@ -1,0 +1,16 @@
+<ul class="collection">
+  <% @groups.each do |group| %>
+    <%= link_to(group, class: 'collection-item avatar') do %>
+      <%= image_tag(group.comics.first.pages.first.image.url(:thumb), class: 'circle') %>
+
+      <span class="title"><%= group.name %></span>
+      <div>Comics: <%= group.comics.count %></div>
+
+      <% if group.read? %>
+        <span class="secondary-content">
+          <i class="medium material-icons green-text">done</i>
+        </span>
+      <% end %>
+    <% end %>
+  <% end %>
+</ul>

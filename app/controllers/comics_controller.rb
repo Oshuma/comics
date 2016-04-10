@@ -1,10 +1,7 @@
 class ComicsController < ApplicationController
 
-  def index
-    @comics = current_user.comics.order(filename: :asc)
-  end
-
   def new
+    @groups = current_user.groups
   end
 
   def create
@@ -18,7 +15,6 @@ class ComicsController < ApplicationController
     end
 
     respond_to do |format|
-      # format.html { redirect_to root_path, notice: 'Comics imported.' }
       format.json { render json: @comics }
     end
   end

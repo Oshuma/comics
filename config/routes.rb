@@ -56,6 +56,8 @@ Rails.application.routes.draw do
 
   devise_for :users
 
+  resources :groups
+
   resources :comics do
     get :read, on: :member
 
@@ -67,5 +69,5 @@ Rails.application.routes.draw do
     end
   end
 
-  root 'comics#index'
+  root 'groups#index'
 end

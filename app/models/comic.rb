@@ -5,6 +5,8 @@ class Comic
   belongs_to :user
   has_many :pages, dependent: :destroy, autosave: true, order: { number: :asc }
 
+  belongs_to :group
+
   field :filename, type: String
 
   validates :filename, presence: true
@@ -12,6 +14,7 @@ class Comic
 
   def import_from_archive(comic_params)
     self.filename = comic_params[:archive].original_filename
+    self.group_id = comic_params[:group_id]
 
     if save
       create_pages_from_archive(comic_params[:archive])

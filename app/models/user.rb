@@ -15,5 +15,6 @@ class User
   ## Rememberable
   field :remember_created_at, type: Time
 
+  has_many :groups, dependent: :destroy
   has_many :comics, dependent: :destroy
 end

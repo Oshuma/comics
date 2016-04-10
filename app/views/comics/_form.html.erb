@@ -1,5 +1,23 @@
 <%= form_for(current_user.comics.build, html: { multipart: true }) do |f| %>
   <div class="row">
+    <div class="input-field col s6">
+      <select name="comics[][group_id]" id="comic_group_id">
+        <option value="" selected>Group...</option>
+        <%= options_from_collection_for_select(@groups, :id, :name) %>
+      </select>
+      <span class="error red-text"></span>
+    </div>
+
+    <div class="input-field col s6">
+      <%= link_to('#add-group', class: 'modal-trigger btn-floating blue') do %>
+        <i class="material-icons">add</i>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="row">
     <div class="file-field input-field col s12">
       <div class="btn blue">
         <span>Choose Files</span>
@@ -29,4 +47,22 @@
 <div class="row">
   <ul id="upload-results" class="col s6 collection hide">
   </ul>
+</div>
+
+<div id="add-group" class="modal">
+  <%= form_for(current_user.groups.new) do |f| %>
+    <div class="modal-content">
+      <div class="row">
+        <div class="input-field col s12">
+          <%= f.text_field :name %>
+          <%= f.label :name, 'Group Name' %>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <%= link_to('Cancel', '#!', class: 'btn-flat modal-action modal-close') %>
+      <%= f.submit('Add', class: 'btn modal-action') %>
+    </div>
+  <% end %>
 </div>

@@ -19,6 +19,12 @@ $(document).ready(function() {
   var startUpload = function(index) {
     if (files[index] == null) return;
 
+    var group = $('#comic_group_id');
+    if (group.val() == "") {
+      group.parents('.input-field').find('.error').text('Select a group.');
+      return;
+    }
+
     var data = files[index];
     var context = data.context;
     context.find('.start-button').text('Uploading...').prop('disabled', true);
@@ -114,5 +120,11 @@ $(document).ready(function() {
 
   $('#stop-uploads').on('click', function() {
     cancelAllUploads();
+  });
+
+  $('#comic_group_id').on('change', function() {
+    if ($(this).val() != "") {
+      $(this).parents('.input-field').find('.error').text('');
+    }
   });
 });
