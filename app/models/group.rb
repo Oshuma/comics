@@ -9,6 +9,10 @@ class Group
 
   validates :name, presence: true
 
+  def has_comics?
+    comics.present?
+  end
+
   def read?
     comics.all? { |comic| comic.read? }
   end

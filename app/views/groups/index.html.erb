@@ -1,5 +1,7 @@
 <ul class="collection">
   <% @groups.each do |group| %>
+    <% next unless group.has_comics? %>
+
     <%= link_to(group, class: 'collection-item avatar') do %>
       <%= image_tag(group.comics.first.pages.first.image.url(:thumb), class: 'circle') %>
 
