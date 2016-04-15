@@ -17,6 +17,11 @@
             </div>
 
             <div class="card-content">
+              <div class="comic-name truncate">
+                <%= comic.filename %>
+                <div class="divider"></div>
+              </div>
+
               <div>
                 <%= link_to(comic, class: 'waves-effect waves-light btn-floating btn-large blue') do %>
                   <i class="material-icons">view_carousel</i>

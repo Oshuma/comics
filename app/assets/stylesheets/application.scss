@@ -21,6 +21,10 @@ $primary-color: color("blue", "lighten-2") !default;
  *= require_self
  */
 
+.comic-name {
+  margin-bottom: 10px;
+}
+
 .viewer {
   width: 100%;
 }
