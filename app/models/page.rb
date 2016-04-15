@@ -10,8 +10,7 @@ class Page
 
   has_mongoid_attached_file :image,
     styles: {
-      thumb: '300x300>',
-      viewer: '1920x1080>',
+      thumb: '300x300>'
     }
 
   validates :number, presence: true, numericality: { only_integer: true }
