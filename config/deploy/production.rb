@@ -6,7 +6,6 @@
 # server 'example.com', user: 'deploy', roles: %w{app db web}, my_property: :my_value
 # server 'example.com', user: 'deploy', roles: %w{app web}, other_property: :other_value
 # server 'db.example.com', user: 'deploy', roles: %w{db}
-server 'twono.de', user: 'app', roles: %w{app db web}, port: '2200'
 
 
 
@@ -18,9 +17,9 @@ server 'twono.de', user: 'app', roles: %w{app db web}, port: '2200'
 # property set. Specify the username and a domain or IP for the server.
 # Don't use `:all`, it's a meta role.
 
-# role :app, %w{app@twono.de:2200}
-# role :web, %w{app@twono.de:2200}
-# role :db,  %w{app@twono.de:2200}
+role :app, %w{app@twono.de:2200}
+role :web, %w{app@twono.de:2200}
+role :db,  %w{app@twono.de:2200}
 
 
 
