@@ -36,7 +36,7 @@ class Comic
 
   def create_pages_from_archive(archive_file)
     tempfile = archive_file.tempfile
-    case File.extname(tempfile)
+    case File.extname(tempfile).downcase
     when '.cbr'
       create_from_cbr(tempfile)
     when '.cbz'
