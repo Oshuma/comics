@@ -25,7 +25,6 @@
 
       <ul class="right">
         <li class="<%= @page.next_page.present? ? 'waves-effect' : 'disabled' %>">
-          <%# TODO: Link to next comic if on last page. %>
           <%= link_to(next_page_comic_page_path(@comic, @page), method: :put) do %>
             <i class="material-icons">chevron_right</i>
           <% end %>
