@@ -1,18 +1,43 @@
-<ul class="collection">
+<ul class="collection with-header">
+  <li class="collection-header">
+    <div class="right-align">
+      <%= link_to('Manage Groups', '#!', id: 'manage-groups', data: { manage: false }) %>
+    </div>
+  </li>
+
   <% @groups.each do |group| %>
-    <% next unless group.has_comics? %>
+    <% if group.has_comics? %>
+      <li id="group-<%= group.id %>" class="collection-item avatar">
+        <%= link_to(group) do %>
+          <%= image_tag(group.comics.first.pages.first.image.url(:thumb), class: 'circle') %>
+        <% end %>
 
-    <%= link_to(group, class: 'collection-item avatar') do %>
-      <%= image_tag(group.comics.first.pages.first.image.url(:thumb), class: 'circle') %>
+        <span class="title"><%= link_to(group.name, group) %></span>
+        <div>Comics: <%= group.comics.count %></div>
 
-      <span class="title"><%= group.name %></span>
-      <div>Comics: <%= group.comics.count %></div>
-
-      <% if group.read? %>
         <span class="secondary-content">
-          <i class="medium material-icons green-text">done</i>
+          <% if group.read? %>
+            <i class="material-icons green-text">done</i>
+          <% end %>
+          <%= link_to(group, method: :delete, class: 'delete-group hide', remote: true, data: { confirm: 'Delete this group?' }) do %>
+            <i class="material-icons red-text text-lighten-1">delete</i>
+          <% end %>
         </span>
-      <% end %>
+      </li>
+    <% else %>
+      <%# Empty Groups. %>
+      <li id="group-<%= group.id %>" class="empty-group hide collection-item avatar">
+        <%= image_tag('placeholder.png', class: 'circle') %>
+
+        <span class="title"><%= group.name %></span>
+        <div></div>
+
+        <span class="secondary-content">
+          <%= link_to(group, method: :delete, remote: true, data: { confirm: 'Delete this group?' }) do %>
+            <i class="material-icons red-text text-lighten-1">delete</i>
+          <% end %>
+        </span>
+      </li>
     <% end %>
   <% end %>
 </ul>

@@ -22,7 +22,11 @@ class GroupsController < ApplicationController
   def destroy
     @group = current_user.groups.find(params[:id])
     @group.destroy
-    redirect_to root_path, notice: 'Group removed.'
+
+    respond_to do |format|
+      format.html { redirect_to root_path, notice: 'Group removed.' }
+      format.js
+    end
   end
 
   private
