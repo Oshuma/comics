@@ -3,6 +3,7 @@
 
 $(document).ready(function() {
   $('#manage-groups').on('click', function(e) {
+    $('.add-group').toggleClass('hide');
     $('.delete-group').toggleClass('hide');
     $('.empty-group').toggleClass('hide');
 
@@ -10,6 +11,7 @@ $(document).ready(function() {
       $(this).data('manage', false);
       $(this).text('Manage Groups');
     } else {
+      $('#group_name').focus();
       $(this).data('manage', true);
       $(this).text('Cancel');
     }

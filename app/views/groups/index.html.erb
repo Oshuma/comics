@@ -5,6 +5,17 @@
     </div>
   </li>
 
+  <li class="collection-header add-group hide">
+    <%= form_for(current_user.groups.new) do |f| %>
+      <div class="row">
+        <div class="input-field col s12">
+          <%= f.text_field :name %>
+          <%= f.label :name, 'Group Name' %>
+        </div>
+      </div>
+    <% end %>
+  </li>
+
   <% @groups.each do |group| %>
     <% if group.has_comics? %>
       <li id="group-<%= group.id %>" class="collection-item avatar">
