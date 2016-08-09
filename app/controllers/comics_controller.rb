@@ -1,7 +1,7 @@
 class ComicsController < ApplicationController
 
   def new
-    @groups = current_user.groups
+    @groups = current_user.groups.order(name: :asc)
   end
 
   def create
