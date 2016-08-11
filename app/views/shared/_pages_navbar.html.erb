@@ -25,6 +25,12 @@
 
       <ul class="right">
         <li class="<%= @page.next_page.present? ? 'waves-effect' : 'disabled' %>">
+          <%= link_to(finish_comic_path(@comic), method: :put, data: { confirm: 'Finished reading?' }) do %>
+            <i class="material-icons">skip_next</i>
+          <% end %>
+        </li>
+
+        <li class="<%= @page.next_page.present? ? 'waves-effect' : 'disabled' %>">
           <%= link_to(next_page_comic_page_path(@comic, @page), method: :put) do %>
             <i class="material-icons">chevron_right</i>
           <% end %>

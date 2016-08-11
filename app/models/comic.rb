@@ -23,6 +23,10 @@ class Comic
     end
   end
 
+  def finished!
+    pages.update_all(read: true)
+  end
+
   def read?
     pages.all? { |page| page.read? }
   end

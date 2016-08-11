@@ -33,6 +33,13 @@ class ComicsController < ApplicationController
     end
   end
 
+  def finish
+    @comic = current_user.comics.find(params[:id])
+    @comic.finished!
+
+    redirect_to group_path(@comic.group)
+  end
+
   def destroy
     @comic = current_user.comics.find(params[:id])
     @comic.destroy
