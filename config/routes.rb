@@ -63,6 +63,7 @@ Rails.application.routes.draw do
   resources :comics do
     get :read, on: :member
     put :finish, on: :member
+    delete :delete_read, on: :collection
 
     resources :pages do
       member do

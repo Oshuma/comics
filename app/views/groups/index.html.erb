@@ -1,5 +1,9 @@
 <ul class="collection with-header">
   <li class="collection-header">
+    <span class="left">
+      <%= link_to('Remove Read Comics', delete_read_comics_path, method: :delete, class: 'manage-link hide', data: { confirm: 'Remove all read comics?' }) %>
+    </span>
+
     <div class="right-align">
       <%= link_to('Manage Groups', '#!', id: 'manage-groups', data: { manage: false }) %>
     </div>

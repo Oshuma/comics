@@ -46,4 +46,9 @@ class ComicsController < ApplicationController
     redirect_to root_path, notice: 'Comic deleted.'
   end
 
+  def delete_read
+    current_user.comics.each { |comic| comic.destroy if comic.read? }
+    redirect_to root_path
+  end
+
 end
