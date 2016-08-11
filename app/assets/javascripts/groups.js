@@ -11,7 +11,6 @@ $(document).ready(function() {
       $(this).data('manage', false);
       $(this).text('Manage Groups');
     } else {
-      $('#group_name').focus();
       $(this).data('manage', true);
       $(this).text('Cancel');
     }
