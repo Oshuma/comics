@@ -1,4 +1,6 @@
 <% content_for(:navbar) do %>
+  <li><%= link_to(@comic.group.name, @comic.group) %></li>
+  <li><i class="material-icons">trending_flat</i></li>
   <li><%= link_to(@comic.filename, @comic) %></li>
 <% end %>
 
