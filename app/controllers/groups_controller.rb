@@ -29,6 +29,13 @@ class GroupsController < ApplicationController
     end
   end
 
+  def delete_comics
+    @group = current_user.groups.find(params[:id])
+    @group.delete_comics!
+
+    redirect_to root_path
+  end
+
   private
 
   def group_params

@@ -56,7 +56,9 @@ Rails.application.routes.draw do
 
   devise_for :users
 
-  resources :groups
+  resources :groups do
+    delete :delete_comics, on: :member
+  end
 
   resources :comics do
     get :read, on: :member

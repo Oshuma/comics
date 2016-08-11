@@ -9,6 +9,11 @@ class Group
 
   validates :name, presence: true
 
+
+  def delete_comics!
+    comics.destroy_all
+  end
+
   def has_comics?
     comics.present?
   end

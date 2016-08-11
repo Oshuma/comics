@@ -5,6 +5,11 @@
       <i class="material-icons">delete</i>
     <% end %>
   </li>
+  <li class="hide-on-med-and-down">
+    <%= link_to(delete_comics_group_path(@group), method: :delete, data: { confirm: 'Remove all comics in this group?' }) do %>
+      <i class="material-icons">warning</i>
+    <% end %>
+  </li>
 <% end %>
 
 <% @comics.each_slice(3) do |row| %>
