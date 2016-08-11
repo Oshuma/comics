@@ -4,8 +4,8 @@
 $(document).ready(function() {
   $('#manage-groups').on('click', function(e) {
     $('.add-group').toggleClass('hide');
-    $('.delete-group').toggleClass('hide');
     $('.empty-group').toggleClass('hide');
+    $('.manage-link').toggleClass('hide');
 
     if ($(this).data('manage')) {
       $(this).data('manage', false);

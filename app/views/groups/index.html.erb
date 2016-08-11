@@ -30,7 +30,12 @@
           <% if group.read? %>
             <i class="material-icons green-text">done</i>
           <% end %>
-          <%= link_to(group, method: :delete, class: 'delete-group hide', remote: true, data: { confirm: 'Delete this group?' }) do %>
+
+          <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hide', data: { confirm: 'Remove all comics in this group?' }) do %>
+            <i class="material-icons yellow-text text-darken-2">warning</i>
+          <% end %>
+
+          <%= link_to(group, method: :delete, class: 'manage-link hide', remote: true, data: { confirm: 'Delete this group?' }) do %>
             <i class="material-icons red-text text-lighten-1">delete</i>
           <% end %>
         </span>
