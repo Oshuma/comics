@@ -1,0 +1,53 @@
+<div id="<%= dom_id(comic) %>" class="col s4">
+  <div class="card hoverable">
+    <div class="card-image">
+      <%= link_to(image_tag(comic.pages.first.image.url(:thumb)), read_comic_path(comic)) %>
+    </div>
+
+    <div class="card-content">
+      <div class="comic-name truncate">
+        <%= comic.filename %>
+        <div class="divider"></div>
+      </div>
+
+      <div>
+        <%= link_to(comic, class: 'waves-effect waves-light btn-floating btn-large blue') do %>
+          <i class="material-icons">view_carousel</i>
+        <% end %>
+
+        <span class="card-title grey-text text-darken-4 activator">
+          <i class="material-icons right">more_vert</i>
+        </span>
+
+        <span class="right">
+          <% if comic.read? %>
+            <i class="medium material-icons green-text">done</i>
+          <% elsif comic.reading? %>
+            <i class="medium material-icons">visibility</i>
+          <% end %>
+        </span>
+      </div>
+    </div>
+
+    <div class="card-reveal">
+      <span class="card-title grey-text text-darken-4"><i class="material-icons right">close</i></span>
+
+      <div>
+        <%= comic.filename %>
+      </div>
+
+      <%= form_tag(move_comic_path(comic), method: :put, remote: true) do %>
+        <div class="row">
+          <div class="input-field col s12">
+            <%= select_tag(:group_id, options_from_collection_for_select(@groups, :id, :name), prompt: 'Select Group', class: 'move-to-group') %>
+          </div>
+
+          <div class="input-field col s12">
+            <%= submit_tag('Move', class: 'waves-effect waves-light btn disabled', disabled: true) %>
+            <%= link_to('Delete', comic, class: 'waves-effect waves-light btn red', method: :delete) %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

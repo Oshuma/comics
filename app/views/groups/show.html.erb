@@ -15,50 +15,7 @@
 <% @comics.each_slice(3) do |row| %>
   <div class="row">
     <% row.each do |comic| %>
-        <div class="col s4">
-          <div class="card hoverable">
-            <div class="card-image">
-              <%= link_to(image_tag(comic.pages.first.image.url(:thumb)), read_comic_path(comic)) %>
-            </div>
-
-            <div class="card-content">
-              <div class="comic-name truncate">
-                <%= comic.filename %>
-                <div class="divider"></div>
-              </div>
-
-              <div>
-                <%= link_to(comic, class: 'waves-effect waves-light btn-floating btn-large blue') do %>
-                  <i class="material-icons">view_carousel</i>
-                <% end %>
-
-                <span class="card-title grey-text text-darken-4 activator">
-                  <i class="material-icons right">more_vert</i>
-                </span>
-
-                <span class="right">
-                  <% if comic.read? %>
-                    <i class="medium material-icons green-text">done</i>
-                  <% elsif comic.reading? %>
-                    <i class="medium material-icons">visibility</i>
-                  <% end %>
-                </span>
-              </div>
-            </div>
-
-            <div class="card-reveal">
-              <span class="card-title grey-text text-darken-4"><i class="material-icons right">close</i></span>
-
-              <div>
-                <%= comic.filename %>
-              </div>
-
-              <%= link_to(comic, class: 'waves-effect waves-light btn red', method: :delete) do %>
-                <i class="material-icons left">delete</i> Delete
-              <% end %>
-            </div>
-          </div>
-        </div>
+      <%= render 'comic', comic: comic %>
     <% end %>
   </div>
 <% end %>
