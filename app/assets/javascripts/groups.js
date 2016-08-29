@@ -17,4 +17,16 @@ $(document).ready(function() {
 
     e.preventDefault();
   });
+
+  $('.move-to-group').on('change', function() {
+    var submit_button = $(this).closest('form').find(':submit');
+
+    if ($(this).val() == '') {
+      submit_button.closest('.btn').addClass('disabled');
+      submit_button.prop('disabled', true);
+    } else {
+      submit_button.closest('.btn').removeClass('disabled');
+      submit_button.prop('disabled', false);
+    }
+  });
 });

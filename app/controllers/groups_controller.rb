@@ -5,6 +5,7 @@ class GroupsController < ApplicationController
   end
 
   def show
+    @groups = current_user.groups.order(name: :asc)
     @group = current_user.groups.find(params[:id])
     @comics = @group.comics
   end

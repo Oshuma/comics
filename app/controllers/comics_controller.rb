@@ -40,6 +40,17 @@ class ComicsController < ApplicationController
     redirect_to group_path(@comic.group)
   end
 
+  def move
+    @comic = current_user.comics.find(params[:id])
+    @group = current_user.groups.find(params[:group_id])
+    @comic.move_to(@group)
+
+    respond_to do |format|
+      format.html { redirect_to(:back, notice: 'Comic moved.') }
+      format.js
+    end
+  end
+
   def destroy
     @comic = current_user.comics.find(params[:id])
     @comic.destroy

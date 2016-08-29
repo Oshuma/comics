@@ -36,6 +36,11 @@ class Comic
     pages.any? { |page| page.read? }
   end
 
+  def move_to(group)
+    self.group = group
+    save
+  end
+
   private
 
   def create_pages_from_archive(archive_file)
