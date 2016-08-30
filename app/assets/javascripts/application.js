@@ -11,9 +11,9 @@
 // about supported directives.
 //
 //= require jquery
+//= require bootstrap-sprockets
 //= require jquery_ujs
 //= require jquery-fileupload/basic
-//= require materialize-sprockets
 //= require_tree .
 
 $(document).ready(function() {
