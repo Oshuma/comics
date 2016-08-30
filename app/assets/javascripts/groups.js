@@ -3,9 +3,9 @@
 
 $(document).ready(function() {
   $('#manage-groups').on('click', function(e) {
-    $('.add-group').toggleClass('hide');
-    $('.empty-group').toggleClass('hide');
-    $('.manage-link').toggleClass('hide');
+    $('.add-group').toggleClass('hidden');
+    $('.empty-group').toggleClass('hidden');
+    $('.manage-link').toggleClass('hidden');
 
     if ($(this).data('manage')) {
       $(this).data('manage', false);

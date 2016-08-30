@@ -1,63 +1,57 @@
-<ul class="collection with-header">
-  <li class="collection-header">
-    <span class="left">
-      <%= link_to('Remove Read Comics', delete_read_comics_path, method: :delete, class: 'manage-link hide', data: { confirm: 'Remove all read comics?' }) %>
-    </span>
-
-    <div class="right-align">
-      <%= link_to('Manage Groups', '#!', id: 'manage-groups', data: { manage: false }) %>
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <div class="pull-left">
+      <%= link_to('Remove Read Comics', delete_read_comics_path, method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all read comics?' }) %>
     </div>
-  </li>
 
-  <li class="collection-header add-group hide">
-    <%= form_for(current_user.groups.new) do |f| %>
-      <div class="row">
-        <div class="input-field col s12">
+    <div class="add-group hidden">
+      <%= form_for(current_user.groups.new) do |f| %>
+        <div class="form-group">
           <%= f.text_field :name %>
           <%= f.label :name, 'Group Name' %>
         </div>
-      </div>
-    <% end %>
-  </li>
+      <% end %>
+    </div>
 
-  <% @groups.each do |group| %>
-    <% if group.has_comics? %>
-      <li id="group-<%= group.id %>" class="collection-item avatar">
-        <%= link_to(group) do %>
-          <%= image_tag(group.comics.first.pages.first.image.url(:thumb), class: 'circle') %>
+    <div class="pull-right">
+      <%= link_to('Manage Groups', '#!', id: 'manage-groups', data: { manage: false }) %>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <div class="list-group">
+      <% @groups.each do |group| %>
+        <% if group.has_comics? %>
+          <div class="list-group-item">
+            <div class="row">
+              <div class="col-md-1">
+                <%= link_to(group) do %>
+                  <%= image_tag(group.comics.first.pages.first.image.url(:thumb), height: '70px', class: 'img-rounded') %>
+                <% end %>
+              </div>
+
+              <div class="col-md-11">
+                <div class="pull-right">
+                  <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all comics in this group?' }) do %>
+                    <i class="text-warning fa fa-2x fa-minus-square-o"></i><% end %>
+
+                  <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
+                    <i class="text-danger fa fa-2x fa-trash"></i><% end %>
+
+                  <% if group.read? %>
+                    <i class="text-success fa fa-2x fa-check"></i>
+                  <% end %>
+                </div>
+
+                <div><%= link_to(group.name, group) %></div>
+                <div><%= pluralize(group.comics.count, 'Comic') %></div>
+              </div>
+            </div>
+          </div>
         <% end %>
-
-        <span class="title"><%= link_to(group.name, group) %></span>
-        <div>Comics: <%= group.comics.count %></div>
-
-        <span class="secondary-content">
-          <% if group.read? %>
-            <i class="material-icons green-text">done</i>
-          <% end %>
-
-          <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hide', data: { confirm: 'Remove all comics in this group?' }) do %>
-            <i class="material-icons yellow-text text-darken-2">warning</i>
-          <% end %>
-
-          <%= link_to(group, method: :delete, class: 'manage-link hide', remote: true, data: { confirm: 'Delete this group?' }) do %>
-            <i class="material-icons red-text text-lighten-1">delete</i>
-          <% end %>
-        </span>
-      </li>
-    <% else %>
-      <%# Empty Groups. %>
-      <li id="group-<%= group.id %>" class="empty-group hide collection-item avatar">
-        <%= image_tag('placeholder.png', class: 'circle') %>
-
-        <span class="title"><%= group.name %></span>
-        <div></div>
-
-        <span class="secondary-content">
-          <%= link_to(group, method: :delete, remote: true, data: { confirm: 'Delete this group?' }) do %>
-            <i class="material-icons red-text text-lighten-1">delete</i>
-          <% end %>
-        </span>
-      </li>
-    <% end %>
-  <% end %>
-</ul>
+      <% end %>
+    </div>
+  </div>
+</div>
