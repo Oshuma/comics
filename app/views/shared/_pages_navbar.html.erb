@@ -1,41 +1,57 @@
-<div class="navbar-fixed">
-  <nav>
-    <div class="nav-wrapper">
-      <ul class="left">
-        <li class="<%= @page.previous_page.present? ? 'waves-effect' : 'disabled' %>">
-          <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put) do %>
-            <i class="material-icons">chevron_left</i>
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#app-nav" aria-expanded="false">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+
+    <div class="collapse navbar-collapse" id="app-nav">
+      <ul class="nav navbar-nav navbar-left">
+        <li>
+          <% if @page.previous_page.present? %>
+            <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put) do %>
+              <i class="fa fa-lg fa-chevron-left"></i>
+            <% end %>
+          <% else %>
+            <%= link_to(@comic.group) do %>
+              <i class="fa fa-lg fa-chevron-left"></i>
+            <% end %>
           <% end %>
         </li>
 
         <li>
           <%= link_to(root_path) do %>
-            <i class="material-icons">view_carousel</i>
+            <i class="fa fa-lg fa-home"></i>
           <% end %>
         </li>
 
         <li>
           <%= link_to(@comic.filename, @comic) %>
         </li>
+
+        <li role="separator" class="divider"></li>
+
+        <li>
+          <p class="navbar-text"><%= @page.number %> / <%= @comic.pages.count %></p>
+        </li>
       </ul>
 
-      <div class="brand-logo center">
-        <%= @page.number %> / <%= @comic.pages.count %>
-      </div>
-
-      <ul class="right">
-        <li class="<%= @page.next_page.present? ? 'waves-effect' : 'disabled' %>">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
           <%= link_to(finish_comic_path(@comic), method: :put, data: { confirm: 'Finished reading?' }) do %>
-            <i class="material-icons">skip_next</i>
+            <i class="fa fa-lg fa-step-forward"></i>
           <% end %>
         </li>
 
-        <li class="<%= @page.next_page.present? ? 'waves-effect' : 'disabled' %>">
+        <li>
           <%= link_to(next_page_comic_page_path(@comic, @page), method: :put) do %>
-            <i class="material-icons">chevron_right</i>
+            <i class="fa fa-lg fa-chevron-right"></i>
           <% end %>
         </li>
       </ul>
     </div>
-  </nav>
-</div>
+  </div>
+</nav>
