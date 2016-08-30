@@ -30,7 +30,6 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 
 gem 'devise'
 gem 'jquery-fileupload-rails'
-gem 'materialize-sass'
 gem 'mongoid', '~> 5.1.0'
 gem 'mongoid-paperclip', :require => 'mongoid_paperclip'
 gem 'paperclip', '~> 4.3'
