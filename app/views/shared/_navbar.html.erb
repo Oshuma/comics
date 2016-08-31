@@ -8,7 +8,7 @@
       </button>
 
       <%= link_to(root_path, class: 'navbar-brand') do %>
-        <i class="fa fa-home"></i> Comics
+        <i class="fa fa-lg fa-book"></i> Comics
       <% end %>
     </div>
 
@@ -16,13 +16,13 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
           <%= link_to(new_comic_path) do %>
-            <i class="fa fa-cloud-upload"></i>
+            <i class="fa fa-lg fa-cloud-upload"></i>
           <% end %>
         </li>
 
         <li>
           <%= link_to(destroy_user_session_path, method: :delete) do %>
-            <i class="fa fa-sign-out"></i>
+            <i class="fa fa-lg fa-sign-out"></i>
           <% end %>
         </li>
       </ul>

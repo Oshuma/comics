@@ -1,20 +1,11 @@
-<div class="row">
+<div class="row" style="margin-top: 5px; margin-bottom: 5px;">
   <div class="col-md-6 col-md-offset-3">
     <div class="pull-left">
-      <%= link_to('Remove Read Comics', delete_read_comics_path, method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all read comics?' }) %>
-    </div>
-
-    <div class="add-group hidden">
-      <%= form_for(current_user.groups.new) do |f| %>
-        <div class="form-group">
-          <%= f.text_field :name %>
-          <%= f.label :name, 'Group Name' %>
-        </div>
-      <% end %>
+      <%= link_to('Remove Read Comics', delete_read_comics_path, method: :delete, class: 'manage-link hidden btn btn-xs btn-warning', data: { confirm: 'Remove all read comics?' }) %>
     </div>
 
     <div class="pull-right">
-      <%= link_to('Manage Groups', '#!', id: 'manage-groups', data: { manage: false }) %>
+      <%= link_to('Manage Groups', '#!', id: 'manage-groups', class: 'btn btn-xs btn-default', data: { manage: false }) %>
     </div>
   </div>
 </div>
@@ -22,9 +13,22 @@
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
     <div class="list-group">
+      <div class="add-group list-group-item hidden">
+        <%= form_for(current_user.groups.new) do |f| %>
+          <div class="input-group">
+            <%= f.text_field :name, class: 'form-control', placeholder: 'Add group...' %>
+            <span class="input-group-btn">
+              <%= f.button(nil, class: 'btn btn-primary') do %>
+                <i class="fa fa-plus"></i>
+              <% end %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+
       <% @groups.each do |group| %>
         <% if group.has_comics? %>
-          <div class="list-group-item">
+          <div class="list-group-item" id="<%= dom_id(group) %>">
             <div class="row">
               <div class="col-md-1">
                 <%= link_to(group) do %>
@@ -43,6 +47,25 @@
                   <% if group.read? %>
                     <i class="text-success fa fa-2x fa-check"></i>
                   <% end %>
+                </div>
+
+                <div><%= link_to(group.name, group) %></div>
+                <div><%= pluralize(group.comics.count, 'Comic') %></div>
+              </div>
+            </div>
+          </div>
+        <% else %>
+          <%# Empty Groups. %>
+          <div class="empty-group list-group-item hidden" id="<%= dom_id(group) %>">
+            <div class="row">
+              <div class="col-md-1">
+                <%= image_tag('placeholder.png', height: '70px', class: 'img-rounded') %>
+              </div>
+
+              <div class="col-md-11">
+                <div class="pull-right">
+                  <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
+                    <i class="text-danger fa fa-2x fa-trash"></i><% end %>
                 </div>
 
                 <div><%= link_to(group.name, group) %></div>
