@@ -21,11 +21,18 @@
  */
 
 body {
-  padding-top: 50px;
+  padding-top: 55px;
 }
 
 .comic-name {
   margin-bottom: 10px;
+}
+
+.truncate {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .viewer {

@@ -13,6 +13,13 @@
     </div>
 
     <div class="collapse navbar-collapse" id="app-nav">
+      <% if content_for?(:navbar) %>
+        <ul class="nav navbar-nav">
+          <li role="separator" class="divider"></li>
+          <%= content_for(:navbar) %>
+        </ul>
+      <% end %>
+
       <ul class="nav navbar-nav navbar-right">
         <li>
           <%= link_to(new_comic_path) do %>

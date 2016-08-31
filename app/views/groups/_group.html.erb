@@ -9,7 +9,7 @@
     <div class="col-sm-11">
       <div class="pull-right">
         <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all comics in this group?' }) do %>
-          <i class="text-warning fa fa-2x fa-minus-square-o"></i><% end %>
+          <i class="text-warning fa fa-2x fa-times"></i><% end %>
 
         <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
           <i class="text-danger fa fa-2x fa-trash"></i><% end %>
