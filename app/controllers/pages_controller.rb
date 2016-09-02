@@ -13,8 +13,8 @@ class PagesController < ApplicationController
     if @next_page
       redirect_to comic_page_path(@comic, @next_page)
     else
-      # TODO: Redirect to next comic.
-      redirect_to root_path
+      # TODO: Redirect to next comic in group or group if no next comic.
+      redirect_to @comic.group
     end
   end
 
@@ -25,7 +25,7 @@ class PagesController < ApplicationController
     if @previous_page
       redirect_to comic_page_path(@comic, @previous_page)
     else
-      redirect_to root_path
+      redirect_to @comic.group
     end
   end
 
