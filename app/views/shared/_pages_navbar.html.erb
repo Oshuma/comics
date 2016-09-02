@@ -28,9 +28,8 @@
           <% end %>
         </li>
 
-        <li>
-          <%= link_to(@comic.filename, @comic) %>
-        </li>
+        <li><%= link_to(@comic.group.name, @comic.group) %></li>
+        <li><%= link_to(@comic.filename, @comic) %></li>
 
         <li role="separator" class="divider"></li>
 
