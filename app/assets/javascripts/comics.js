@@ -21,7 +21,7 @@ $(document).ready(function() {
 
     var group = $('#comic_group_id');
     if (group.val() == "") {
-      group.parents('.input-field').find('.error').text('Select a group.');
+      group.parents('.input-group').find('.error').text('Select a group.');
       return;
     }
 
@@ -39,7 +39,7 @@ $(document).ready(function() {
       cancelUpload(index);
     });
 
-    $('#upload-results').addClass('hide');
+    $('#upload-results').addClass('hidden');
   };
 
   var startAllUploads = function() {
@@ -55,7 +55,7 @@ $(document).ready(function() {
 
   var createProgressBar = function(progress) {
     var progressBar = $('<div class="progress"/>');
-    progressBar.append($('<div class="determinate" style="width: ' + progress + ';"/>'));
+    progressBar.append($('<div class="progress-bar progress-bar-info" style="width: ' + progress + ';"/>'));
     return progressBar;
   };
 
@@ -67,8 +67,8 @@ $(document).ready(function() {
       var filename = getFilename(data);
 
       var index = $('#upload-results li').length;
-      var startButton = $('<button type="button" class="btn start-button" data-file="' + index + '">Start</button>');
-      var cancelButton = $('<button type="button" class="btn grey" data-file="' + index + '">Cancel</button>');
+      var startButton = $('<button type="button" class="btn btn-primary start-button" data-file="' + index + '">Start</button>');
+      var cancelButton = $('<button type="button" class="btn btn-default" data-file="' + index + '">Cancel</button>');
 
       startButton.on('click', function() {
         startUpload($(this).attr('data-file'));
@@ -78,9 +78,9 @@ $(document).ready(function() {
         cancelUpload($(this).attr('data-file'));
       });
 
-      var row = $('<li class="collection-item"/>');
+      var row = $('<li class="list-group-item"/>');
       row.append($('<div class="filename"/>'));
-      row.append($('<div class="progress"/>').append($('<div class="determinate"/>')));
+      row.append($('<div class="progress"/>').append($('<div class="progress-bar progress-bar-info"/>')));
       row.append($('<div class="actions"/>'));
 
       row.find('.filename').text(filename);
@@ -90,7 +90,7 @@ $(document).ready(function() {
       row.find('.actions').append(cancelButton);
 
       row.appendTo('#upload-results');
-      $('#upload-results').removeClass('hide');
+      $('#upload-results').removeClass('hidden');
 
       data.context = row;
       files.push(data);
@@ -99,7 +99,7 @@ $(document).ready(function() {
     done: function(e, data) {
       // FIXME: Remove uploaded files from the 'files' array, because it uploads a dupe if more are added.
       data.context.find('.actions').remove();
-      data.context.find('.progress').after('<i class="material-icons green-text">done</i>');
+      data.context.find('.progress').after('<i class="text-success fa fa-2x fa-check"></i>');
     },
 
     progress: function(e, data) {
@@ -124,7 +124,7 @@ $(document).ready(function() {
 
   $('#comic_group_id').on('change', function() {
     if ($(this).val() != "") {
-      $(this).parents('.input-field').find('.error').text('');
+      $(this).parents('.input-group').find('.error').text('');
     }
   });
 });

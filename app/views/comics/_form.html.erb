@@ -1,26 +1,25 @@
 <%= form_for(current_user.comics.build, html: { multipart: true }) do |f| %>
   <div class="row">
-    <div class="input-field col s6">
-      <select name="comics[][group_id]" id="comic_group_id">
-        <option value="" selected>Group...</option>
-        <%= options_from_collection_for_select(@groups, :id, :name) %>
-      </select>
-      <span class="error red-text"></span>
-    </div>
+    <div class="col-md-6 col-md-offset-3">
+      <div class="input-group">
+        <select name="comics[][group_id]" class="form-control" id="comic_group_id">
+          <option value="" selected>Group...</option>
+          <%= options_from_collection_for_select(@groups, :id, :name) %>
+        </select>
+        <span class="error text-danger"></span>
 
-    <div class="input-field col s6">
-      <%= link_to('#add-group', class: 'modal-trigger btn-floating blue') do %>
-        <i class="material-icons">add</i>
-      <% end %>
+        <span class="input-group-btn">
+          <%= link_to('#add-group', class: 'btn btn-default') do %>
+            <i class="fa fa-plus"></i>
+          <% end %>
+        </span>
+      </div>
     </div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="row">
-    <div class="file-field input-field col s12">
-      <div class="btn blue">
-        <span>Choose Files</span>
+  <div class="row" style="margin-top: 15px;">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="form-group">
         <input
            id="comic-upload"
            type="file"
@@ -33,36 +32,25 @@
   </div>
 
   <div class="row">
-    <div class="col s12">
-      <button id="start-upload" type="button" class="btn">Start</button>
-      <button id="stop-uploads" type="button" class="btn grey">Stop</button>
+    <div class="col-md-6 col-md-offset-3">
+      <button id="start-upload" type="button" class="btn btn-primary">Start All</button>
+      <button id="stop-uploads" type="button" class="btn btn-default">Stop All</button>
     </div>
   </div>
 <% end %>
 
-<div class="progress">
-  <div id="total-progress" class="determinate" style="width: 0%;"></div>
+<div class="row" style="margin-top: 15px;">
+  <div class="col-md-6 col-md-offset-3">
+    <div class="progress">
+      <div id="total-progress" class="progress-bar progress-bar-success" role="progressbar" style="width: 0%;">
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="row">
-  <ul id="upload-results" class="col s6 collection hide">
-  </ul>
-</div>
-
-<div id="add-group" class="modal">
-  <%= form_for(current_user.groups.new) do |f| %>
-    <div class="modal-content">
-      <div class="row">
-        <div class="input-field col s12">
-          <%= f.text_field :name %>
-          <%= f.label :name, 'Group Name' %>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <%= link_to('Cancel', '#!', class: 'btn-flat modal-action modal-close') %>
-      <%= f.submit('Add', class: 'btn modal-action') %>
-    </div>
-  <% end %>
+  <div class="col-md-6 col-md-offset-3">
+    <ul id="upload-results" class="list-group hidden">
+    </ul>
+  </div>
 </div>
