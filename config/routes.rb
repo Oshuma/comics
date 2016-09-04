@@ -79,5 +79,7 @@ Rails.application.routes.draw do
     end
   end
 
+  get 'stats' => 'stats#index'
+
   root 'groups#index'
 end

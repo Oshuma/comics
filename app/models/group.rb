@@ -14,6 +14,10 @@ class Group
     comics.destroy_all
   end
 
+  def disk_size
+    comics.map { |comic| comic.pages.map { |page| page.image_file_size }.sum }.sum
+  end
+
   def has_comics?
     comics.present?
   end
