@@ -9,7 +9,7 @@
         <span class="error text-danger"></span>
 
         <span class="input-group-btn">
-          <%= link_to('#add-group', class: 'btn btn-default') do %>
+          <%= link_to('#add-group', class: 'btn btn-default', data: { toggle: 'modal', target: '#new-group-modal' }) do %>
             <i class="fa fa-plus"></i>
           <% end %>
         </span>
@@ -33,7 +33,7 @@
 
   <div class="row">
     <div class="col-md-6 col-md-offset-3">
-      <button id="start-upload" type="button" class="btn btn-primary">Start All</button>
+      <button id="start-upload" type="button" class="btn btn-success">Start All</button>
       <button id="stop-uploads" type="button" class="btn btn-default">Stop All</button>
     </div>
   </div>
@@ -54,3 +54,5 @@
     </ul>
   </div>
 </div>
+
+<%= render 'new_group_modal' %>

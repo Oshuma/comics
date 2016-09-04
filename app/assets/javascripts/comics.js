@@ -127,4 +127,9 @@ $(document).ready(function() {
       $(this).parents('.input-group').find('.error').text('');
     }
   });
+
+  // autofocus new group modal's name field.
+  $('#new-group-modal').on('shown.bs.modal', function() {
+    $('#group_name').focus();
+  });
 });
