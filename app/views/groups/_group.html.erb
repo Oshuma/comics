@@ -1,26 +1,19 @@
-<div class="list-group-item" id="<%= dom_id(group) %>">
-  <div class="row">
-    <div class="col-sm-1">
-      <%= link_to(group) do %>
-        <%= image_tag(group.comics.first.pages.first.image.url(:thumb), height: '70px', class: 'img-rounded') %>
+<div id="<%= dom_id(group) %>" class="col-sm-3 col-md-2">
+  <div class="thumbnail">
+    <%= link_to(image_tag(group.comics.first.pages.first.image.url(:thumb)), group) %>
+
+    <div class="caption">
+      <h4 class="truncate"><%= group.name %></h4>
+
+      <% if group.read? %>
+        <i class="text-success fa fa-2x fa-check"></i>
       <% end %>
-    </div>
 
-    <div class="col-sm-11">
-      <div class="pull-right">
-        <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all comics in this group?' }) do %>
-          <i class="text-warning fa fa-2x fa-times"></i><% end %>
+      <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all comics in this group?' }) do %>
+        <i class="text-warning fa fa-2x fa-times"></i><% end %>
 
-        <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
-          <i class="text-danger fa fa-2x fa-trash"></i><% end %>
-
-        <% if group.read? %>
-          <i class="text-success fa fa-2x fa-check"></i>
-        <% end %>
-      </div>
-
-      <div><%= link_to(group.name, group) %></div>
-      <div><%= pluralize(group.comics.count, 'Comic') %></div>
+      <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
+        <i class="text-danger fa fa-2x fa-trash"></i><% end %>
     </div>
   </div>
 </div>

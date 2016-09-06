@@ -1,17 +1,12 @@
-<div class="empty-group list-group-item hidden" id="<%= dom_id(group) %>">
-  <div class="row">
-    <div class="col-sm-1">
-      <%= image_tag('placeholder.png', height: '70px', class: 'img-rounded') %>
-    </div>
+<div id="<%= dom_id(group) %>" class="empty-group hidden col-sm-3 col-md-2">
+  <div class="thumbnail">
+    <%= image_tag('placeholder.png') %>
 
-    <div class="col-sm-11">
-      <div class="pull-right">
-        <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
-          <i class="text-danger fa fa-2x fa-trash"></i><% end %>
-      </div>
+    <div class="caption">
+      <h4 class="truncate"><%= group.name %></h4>
 
-      <div><%= link_to(group.name, group) %></div>
-      <div><%= pluralize(group.comics.count, 'Comic') %></div>
+      <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
+        <i class="text-danger fa fa-2x fa-trash"></i><% end %>
     </div>
   </div>
 </div>
