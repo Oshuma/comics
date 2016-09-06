@@ -5,15 +5,13 @@
     <div class="caption">
       <h4 class="truncate">
         <%= group.name %>
-
-        <span class="pull-right">
-          <% if group.read? %>
-            <i class="text-success fa fa-check"></i>
-          <% elsif group.reading? %>
-            <i class="fa fa-eye"></i>
-          <% end %>
-        </span>
       </h4>
+
+      <% if group.read? %>
+        <i class="text-success fa fa-2x fa-check"></i>
+      <% elsif group.reading? %>
+        <i class="fa fa-2x fa-eye"></i>
+      <% end %>
 
       <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
         <i class="text-danger fa fa-2x fa-trash"></i><% end %>
