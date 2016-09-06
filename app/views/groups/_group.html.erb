@@ -3,17 +3,23 @@
     <%= link_to(image_tag(group.comics.first.pages.first.image.url(:thumb)), group) %>
 
     <div class="caption">
-      <h4 class="truncate"><%= group.name %></h4>
+      <h4 class="truncate">
+        <%= group.name %>
 
-      <% if group.read? %>
-        <i class="text-success fa fa-2x fa-check"></i>
-      <% end %>
-
-      <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all comics in this group?' }) do %>
-        <i class="text-warning fa fa-2x fa-times"></i><% end %>
+        <span class="pull-right">
+          <% if group.read? %>
+            <i class="text-success fa fa-check"></i>
+          <% elsif group.reading? %>
+            <i class="fa fa-eye"></i>
+          <% end %>
+        </span>
+      </h4>
 
       <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
         <i class="text-danger fa fa-2x fa-trash"></i><% end %>
+
+      <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all comics in this group?' }) do %>
+        <i class="text-warning fa fa-2x fa-times"></i><% end %>
     </div>
   </div>
 </div>

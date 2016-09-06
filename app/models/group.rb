@@ -25,4 +25,8 @@ class Group
   def read?
     comics.all? { |comic| comic.read? }
   end
+
+  def reading?
+    comics.any? { |comic| comic.reading? }
+  end
 end
