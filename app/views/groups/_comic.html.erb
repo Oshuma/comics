@@ -3,6 +3,8 @@
     <%= link_to(image_tag(comic.pages.first.image.url(:thumb)), read_comic_path(comic)) %>
 
     <div class="caption">
+      <h4 class="truncate"><%= comic.filename %></h4>
+
       <div class="pull-left">
         <%= link_to(comic, class: 'btn btn-default') do %>
           <i class="fa fa-columns"></i>
@@ -23,9 +25,7 @@
 
       <div class="clearfix"></div>
 
-      <h4 class="truncate"><%= comic.filename %></h4>
-
-      <div class="collapse" id="<%= dom_id(comic, 'options') %>">
+      <div class="collapse" id="<%= dom_id(comic, 'options') %>" style="margin-top: 10px;">
         <%= form_tag(move_comic_path(comic), method: :put, remote: true) do %>
           <div class="form-group">
             <%= select_tag(:group_id, options_from_collection_for_select(@groups, :id, :name), prompt: 'Select Group', class: 'move-to-group form-control') %>
