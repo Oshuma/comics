@@ -13,8 +13,7 @@ class PagesController < ApplicationController
     if @next_page
       redirect_to comic_page_path(@comic, @next_page)
     else
-      # TODO: Redirect to next comic in group or group if no next comic.
-      redirect_to @comic.group
+      redirect_to next_comic
     end
   end
 
@@ -30,6 +29,12 @@ class PagesController < ApplicationController
   end
 
   private
+
+  # Returns next Comic or current Group.
+  def next_comic
+    result = @comic.group.next_comic(@comic)
+    result.is_a?(Comic) ? read_comic_path(result) : result
+  end
 
   def set_page
     @comic = current_user.comics.find(params[:comic_id])
