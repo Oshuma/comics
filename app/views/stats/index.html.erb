@@ -1,6 +1,11 @@
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
     <div class="list-group">
+      <div class="list-group-item">
+        <strong>Total</strong>
+        <span class="pull-right"><%= number_to_human_size(@total_size) %></span>
+      </div>
+
       <% @groups.each do |group| %>
         <div class="list-group-item">
           <%= group.name %> / <%= pluralize(group.comics.count, 'Comic') %>
