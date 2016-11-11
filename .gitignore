@@ -8,7 +8,11 @@
 /.bundle
 /.gems
 
+# Ignore Vagrant files.
+/.vagrant
+
 # Ignore all logfiles and tempfiles.
+/*.log
 /log/*
 !/log/.keep
 /tmp
