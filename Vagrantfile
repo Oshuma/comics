@@ -77,8 +77,9 @@ Vagrant.configure("2") do |config|
     sudo apt-get install -y ruby ruby-dev
     sudo apt-get install -y mongodb
     sudo apt-get install -y nodejs
-    sudo apt-get install -y postgresql
-    sudo -u postgres createuser -s ubuntu
+    sudo apt-get install -y postgresql libpq-dev
+    sudo -u postgres createuser --superuser ubuntu
+    sudo -u postgres psql -c "ALTER USER ubuntu WITH PASSWORD 'vagrant';"
 
     # rbenv
     sudo apt-get install -y autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
