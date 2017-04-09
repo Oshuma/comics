@@ -1,6 +1,0 @@
-== Comics
-
-==== Requirements
-
-* Rails
-* Mongo

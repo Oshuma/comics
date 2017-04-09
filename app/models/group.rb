@@ -1,11 +1,7 @@
-class Group
-  include Mongoid::Document
-  include Mongoid::Timestamps
+class Group < ApplicationRecord
 
   belongs_to :user
-  has_many :comics, dependent: :destroy, order: { filename: :asc }
-
-  field :name, type: String
+  has_many :comics, -> { order(filename: :asc) }, dependent: :destroy
 
   validates :name, presence: true
 
@@ -24,7 +20,7 @@ class Group
 
   # Returns the Comic after `current_comic` or `self` if last Comic.
   def next_comic(current_comic)
-    # FIXME: This is lame, but so is mongo. Make this a proper query when we're using a decent db.
+    # FIXME: This is left over from when we were using mongo. Make this an actual db query.
     comics.each_slice(2) do |one, two|
       return two if current_comic.id.to_s == one.id.to_s
     end

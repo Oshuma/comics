@@ -1,13 +1,8 @@
-class Comic
-  include Mongoid::Document
-  include Mongoid::Timestamps
+class Comic < ApplicationRecord
 
   belongs_to :user
-  has_many :pages, dependent: :destroy, autosave: true, order: { number: :asc }
-
   belongs_to :group
-
-  field :filename, type: String
+  has_many :pages, -> { order(number: :asc) }, dependent: :destroy, autosave: true
 
   validates :filename, presence: true
 
@@ -84,7 +79,7 @@ class Comic
         begin
           pages.create!(number: page_number, image: File.open(image))
           page_number += 1
-        rescue Mongoid::Errors::Validations
+        rescue ActiveRecord::RecordInvalid
           # This is mainly here in case the archive has some dumbass 'Thumbs.db' file that isn't an image.
           next
         end

@@ -4,18 +4,17 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile '~/.gitignore_global'
 
-# Ignore bundler config and local gems.
+# Ignore bundler config.
 /.bundle
-/.gems
-
-# Ignore Vagrant files.
-/.vagrant
 
 # Ignore all logfiles and tempfiles.
-/*.log
 /log/*
+/tmp/*
 !/log/.keep
-/tmp
+!/tmp/.keep
+
+# Ignore Byebug command history file.
+.byebug_history
 
 # Ignore uploaded files.
 /public/system
