@@ -4,7 +4,7 @@
       <div class="input-group">
         <select name="comics[][group_id]" class="form-control" id="comic_group_id">
           <option value="" selected>Group...</option>
-          <%= options_from_collection_for_select(@groups, :id, :name) %>
+          <%= options_from_collection_for_select(@groups, :id, :name, params[:group_id]) %>
         </select>
         <span class="error text-danger"></span>
 
