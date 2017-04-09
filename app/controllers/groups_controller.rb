@@ -20,6 +20,15 @@ class GroupsController < ApplicationController
     end
   end
 
+  def update
+    @group = current_user.groups.find(params[:id])
+    if @group.update(group_params)
+      redirect_to :back, notice: 'Group updated.'
+    else
+      redirect_to :back, alert: 'There was a problem updating that group.'
+    end
+  end
+
   def destroy
     @group = current_user.groups.find(params[:id])
     @group.destroy

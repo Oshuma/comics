@@ -29,4 +29,9 @@ $(document).on('turbolinks:load', function() {
       submit_button.prop('disabled', false);
     }
   });
+
+  // autofocus and select text in group modal's name field.
+  $('.edit-group-modal').on('shown.bs.modal', function() {
+    $(this).find('#group_name').select();
+  });
 });
