@@ -7,6 +7,10 @@ class Comic < ApplicationRecord
   validates :filename, presence: true
 
 
+  def cover_image_thumb
+    pages.first.try(:image).try(:url, :thumb)
+  end
+
   def import_from_archive(comic_params)
     self.filename = comic_params[:archive].original_filename
     self.group_id = comic_params[:group_id]

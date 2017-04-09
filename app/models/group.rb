@@ -6,6 +6,10 @@ class Group < ApplicationRecord
   validates :name, presence: true
 
 
+  def cover_image_thumb
+    comics.first.try(:pages).try(:first).try(:image).try(:url, :thumb)
+  end
+
   def delete_comics!
     comics.destroy_all
   end
