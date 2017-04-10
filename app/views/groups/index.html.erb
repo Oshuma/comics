@@ -1,9 +1,14 @@
-<div class="row hidden-xs hidden-sm" style="margin-bottom: 5px;">
-  <div class="col-md-6 col-sm-8">
-    <%= link_to('Manage Groups', '#!', id: 'manage-groups', class: 'btn btn-sm btn-default', data: { manage: false }) %>
-    <%= link_to('Remove Read Comics', delete_read_comics_path, method: :delete, class: 'manage-link hidden btn btn-sm btn-warning', data: { confirm: 'Remove all read comics?' }) %>
-  </div>
-</div>
+<% content_for :navbar do %>
+  <li>
+    <%= link_to(delete_read_comics_path, method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all read comics?' }) do %>
+      <i class="fa fa-fw fa-eye-slash"></i> Remove Read Comics
+    <% end %>
+  </li>
+
+  <li>
+    <%= link_to('Manage Groups', '#!', id: 'manage-groups', data: { manage: false }) %>
+  </li>
+<% end %>
 
 <% @groups.each_slice(4) do |row| %>
   <div class="row">
