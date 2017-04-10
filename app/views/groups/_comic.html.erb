@@ -2,16 +2,16 @@
   <div class="thumbnail">
     <%= link_to(thumb_or_placeholder_image_tag(comic.cover_image_thumb), read_comic_path(comic)) %>
 
-    <div class="reading-icon">
-      <% if comic.read? %>
-        <i class="text-success fa fa-2x fa-check"></i>
-      <% elsif comic.reading? %>
-        <i class="fa fa-2x fa-eye"></i>
-      <% end %>
-    </div>
-
     <div class="caption">
       <h4 class="truncate"><%= comic.pretty_filename %></h4>
+
+      <div class="pull-right">
+        <% if comic.read? %>
+          <i class="text-success fa fa-2x fa-check"></i>
+        <% elsif comic.reading? %>
+          <i class="fa fa-2x fa-eye"></i>
+        <% end %>
+      </div>
 
       <div class="pull-left">
         <%= link_to(comic, class: 'btn btn-default') do %>

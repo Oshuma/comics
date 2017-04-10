@@ -7,7 +7,7 @@
   <ul class="dropdown-menu" aria-labelledby="<%= dom_id(group) %>-dropdown">
     <li>
       <%= link_to('#edit-group', data: { toggle: 'modal', target: "#edit-#{dom_id(group)}-modal" }) do %>
-        <i class="fa fa-fw fa-pencil"></i> Edit
+        <i class="fa fa-fw fa-pencil"></i> Edit Group
       <% end %>
     </li>
 
@@ -31,7 +31,7 @@
 
     <li>
       <%= link_to(group, method: :delete, remote: true, data: { confirm: 'Delete this group?' }) do %>
-        <i class="fa fa-fw fa-trash"></i> Delete
+        <i class="fa fa-fw fa-trash"></i> Delete Group
       <% end %>
     </li>
   </ul>
