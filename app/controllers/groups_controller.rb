@@ -46,6 +46,13 @@ class GroupsController < ApplicationController
     redirect_to root_path
   end
 
+  def delete_read
+    @group = current_user.groups.find(params[:id])
+    @group.delete_read_comics!
+
+    redirect_to :back
+  end
+
   private
 
   def group_params

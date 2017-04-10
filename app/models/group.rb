@@ -14,6 +14,10 @@ class Group < ApplicationRecord
     comics.destroy_all
   end
 
+  def delete_read_comics!
+    comics.each { |comic| comic.destroy if comic.read? }
+  end
+
   def disk_size
     comics.map { |comic| comic.pages.map { |page| page.image_file_size }.sum }.sum
   end

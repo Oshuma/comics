@@ -12,9 +12,17 @@
     </li>
 
     <% if group.has_comics? %>
+      <li class="divider"></li>
+
+      <li>
+        <%= link_to(delete_read_group_path(group), method: :delete, data: { confirm: 'Remove all read comics?' }) do %>
+          <i class="fa fa-fw fa-eye-slash"></i> Remove Read Comics
+        <% end %>
+      </li>
+
       <li>
         <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all comics in this group?' }) do %>
-          <i class="fa fa-fw fa-times"></i> Remove Comics
+          <i class="fa fa-fw fa-ban"></i> Remove All Comics
         <% end %>
       </li>
     <% end %>

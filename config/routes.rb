@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   resources :groups do
     delete :delete_comics, on: :member
+    delete :delete_read, on: :member
   end
 
   resources :comics do
