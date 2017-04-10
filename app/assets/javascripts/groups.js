@@ -9,10 +9,12 @@ $(document).on('turbolinks:load', function() {
 
     if ($(this).data('manage')) {
       $(this).data('manage', false);
-      $(this).text('Manage Groups');
+      $(this).find('i').removeClass('fa-ban').addClass('fa-cog');
+      $(this).find('span').text('Manage Groups');
     } else {
       $(this).data('manage', true);
-      $(this).text('Cancel');
+      $(this).find('i').removeClass('fa-cog').addClass('fa-ban');
+      $(this).find('span').text('Cancel');
     }
 
     e.preventDefault();
