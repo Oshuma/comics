@@ -40,6 +40,10 @@ class Comic < ApplicationRecord
     save
   end
 
+  def pretty_filename
+    File.basename(filename, File.extname(filename))
+  end
+
   private
 
   def create_pages_from_archive(archive_file)
