@@ -8,7 +8,7 @@
     <% row.each do |page| %>
       <div class="col-sm-3 col-md-2">
         <div class="thumbnail">
-          <%= link_to(image_tag(page.image.url(:thumb)), [@comic, page]) %>
+          <%= link_to(thumb_or_placeholder_image_tag(page.image), [@comic, page]) %>
         </div>
       </div>
     <% end %>

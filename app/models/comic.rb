@@ -8,7 +8,7 @@ class Comic < ApplicationRecord
 
 
   def cover_image_thumb
-    pages.first.try(:image).try(:url, :thumb)
+    @cover_image_thumb ||= pages.first.try(:image)
   end
 
   def import_from_archive(comic_params)

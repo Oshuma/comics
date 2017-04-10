@@ -1,6 +1,6 @@
 <div id="<%= dom_id(comic) %>" class="col-sm-3 col-md-2">
   <div class="thumbnail">
-    <%= link_to(image_tag(comic.cover_image_thumb), read_comic_path(comic)) %>
+    <%= link_to(thumb_or_placeholder_image_tag(comic.cover_image_thumb), read_comic_path(comic)) %>
 
     <div class="reading-icon">
       <% if comic.read? %>
