@@ -56,7 +56,7 @@ class ComicsController < ApplicationController
     @comic.destroy
 
     respond_to do |format|
-      format.html { redirect_to root_path, notice: 'Comic deleted.' }
+      format.html { redirect_to @comic.group, notice: 'Comic deleted.' }
       format.js
     end
   end
