@@ -1,1 +1,5 @@
-<%= image_tag(@page.image.url, class: 'viewer') %>
+<% if @page.image.exists? %>
+  <%= image_tag(@page.image.url, class: 'viewer') %>
+<% else %>
+  <%= image_tag('placeholder_page.png', class: 'viewer') %>
+<% end %>
