@@ -14,7 +14,7 @@
 
       <% @groups.each do |group| %>
         <div class="list-group-item">
-          <%= group.name %> / <%= pluralize(group.comics.count, 'Comic') %>
+          <%= link_to(group.name, group) %> / <%= pluralize(group.comics.count, 'Comic') %>
           <span class="pull-right"><%= number_to_human_size(group.disk_size) %></span>
         </div>
       <% end %>
