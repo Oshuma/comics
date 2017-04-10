@@ -83,8 +83,10 @@ class Comic < ApplicationRecord
         begin
           pages.create!(number: page_number, image: File.open(image))
           page_number += 1
-        rescue ActiveRecord::RecordInvalid
-          # This is mainly here in case the archive has some dumbass 'Thumbs.db' file that isn't an image.
+        # This is mainly here in case the archive has some dumbass 'Thumbs.db' file that isn't an image.
+        rescue => e
+          Rails.logger.warn "-- WARN: #{Time.now}: #{self.class}#inside_temp_dir: #{e.inspect}"
+          Rails.logger.warn "-- WARN: #{Time.now}: #{self.class}#inside_temp_dir: image: #{image.inspect}"
           next
         end
       end
