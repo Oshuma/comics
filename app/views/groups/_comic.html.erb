@@ -2,6 +2,14 @@
   <div class="thumbnail">
     <%= link_to(image_tag(comic.cover_image_thumb), read_comic_path(comic)) %>
 
+    <div class="reading-icon">
+      <% if comic.read? %>
+        <i class="text-success fa fa-2x fa-check"></i>
+      <% elsif comic.reading? %>
+        <i class="fa fa-2x fa-eye"></i>
+      <% end %>
+    </div>
+
     <div class="caption">
       <h4 class="truncate"><%= comic.filename %></h4>
 
@@ -12,14 +20,6 @@
 
         <%= link_to("##{dom_id(comic, 'options')}", class: 'btn btn-default', data: { toggle: 'collapse' }) do %>
           <i class="fa fa-cog"></i>
-        <% end %>
-      </div>
-
-      <div class="pull-right">
-        <% if comic.read? %>
-          <i class="text-success fa fa-2x fa-check"></i>
-        <% elsif comic.reading? %>
-          <i class="fa fa-2x fa-eye"></i>
         <% end %>
       </div>
 

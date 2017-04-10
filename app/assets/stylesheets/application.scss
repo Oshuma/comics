@@ -28,6 +28,15 @@ body {
   margin-bottom: 10px;
 }
 
+.reading-icon {
+  position: absolute;
+  top: 276px;
+  left: 25px;
+  background: rgba(230, 230, 230, 0.75) center no-repeat;
+  padding-left: 10px;
+  width: 79.5%;
+}
+
 .truncate {
   display: block;
   white-space: nowrap;

@@ -2,16 +2,18 @@
   <div class="thumbnail">
     <%= link_to(image_tag(group.cover_image_thumb), group) %>
 
-    <div class="caption">
-      <h4 class="truncate">
-        <%= group.name %>
-      </h4>
-
+    <div class="reading-icon">
       <% if group.read? %>
         <i class="text-success fa fa-2x fa-check"></i>
       <% elsif group.reading? %>
         <i class="fa fa-2x fa-eye"></i>
       <% end %>
+    </div>
+
+    <div class="caption">
+      <h4 class="truncate">
+        <%= group.name %>
+      </h4>
 
       <%= render 'manage_dropdown', group: group %>
     </div>
