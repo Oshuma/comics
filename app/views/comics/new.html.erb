@@ -1,1 +1,15 @@
+<% content_for(:navbar) do %>
+  <li class="active">
+    <%= link_to(new_comic_path) do %>
+      <i class="fa fa-cloud-upload"></i> Upload Comic
+    <% end %>
+  </li>
+
+  <li>
+    <%= link_to('#add-group', data: { toggle: 'modal', target: '#new-group-modal' }) do %>
+      <i class="fa fa-plus"></i> Add Group
+    <% end %>
+  </li>
+<% end %>
+
 <%= render 'form' %>

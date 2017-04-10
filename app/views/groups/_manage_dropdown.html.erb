@@ -1,4 +1,4 @@
-<div class="manage-link hidden dropdown">
+<div class="dropdown">
   <button class="btn btn-default dropdown-toggle" type="button" id="<%= dom_id(group) %>-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
     Manage
     <span class="caret"></span>
@@ -21,7 +21,7 @@
       </li>
 
       <li>
-        <%= link_to(delete_comics_group_path(group), method: :delete, class: 'manage-link hidden', data: { confirm: 'Remove all comics in this group?' }) do %>
+        <%= link_to(delete_comics_group_path(group), method: :delete, data: { confirm: 'Remove all comics in this group?' }) do %>
           <i class="fa fa-fw fa-ban"></i> Remove All Comics
         <% end %>
       </li>
@@ -30,7 +30,7 @@
     <li class="divider"></li>
 
     <li>
-      <%= link_to(group, method: :delete, class: 'manage-link hidden', remote: true, data: { confirm: 'Delete this group?' }) do %>
+      <%= link_to(group, method: :delete, remote: true, data: { confirm: 'Delete this group?' }) do %>
         <i class="fa fa-fw fa-trash"></i> Delete
       <% end %>
     </li>

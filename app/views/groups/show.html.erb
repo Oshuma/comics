@@ -1,6 +1,5 @@
 <% content_for(:navbar) do %>
-  <li><%= link_to(@group.name, @group) %></li>
-  <li role="separator" class="divider"></li>
+  <li class="active"><%= link_to(@group.name, @group) %></li>
 
   <li class="dropdown">
     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
