@@ -3,6 +3,11 @@
 
 $(document).on('turbolinks:load', function() {
 
+  $('#toggle-empty-groups').on('click', function(e) {
+    $('.empty-group').toggleClass('hidden');
+    e.preventDefault();
+  });
+
   $('.move-to-group').on('change', function() {
     var submit_button = $(this).closest('form').find(':submit');
 

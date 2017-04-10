@@ -1,6 +1,6 @@
 <div id="<%= dom_id(group) %>" class="empty-group hidden col-sm-3 col-md-2">
   <div class="thumbnail">
-    <%= image_tag('placeholder.png') %>
+    <%= link_to(image_tag('placeholder_no_comics.png'), group) %>
 
     <div class="caption">
       <h4 class="truncate"><%= group.name %></h4>
