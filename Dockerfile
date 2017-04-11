@@ -1,17 +1,15 @@
-FROM ruby:2.4.1
+FROM ruby:2.3-alpine
 
-# Enable non-free repo, so we get an 'unrar' that acts like we expect.
-RUN sed -i "s/jessie main/jessie main contrib non-free/" /etc/apt/sources.list
-
-RUN apt-get update -qq \
-    && apt-get install -y --no-install-recommends \
-         build-essential \
-         imagemagick \
-         libpq-dev \
-         nodejs \
-         unrar \
-         unzip \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --update --no-cache \
+      build-base \
+      file \
+      imagemagick \
+      nodejs \
+      postgresql-dev \
+      tzdata \
+      unrar \
+      unzip \
+    && rm -rf /var/cache/apk/*
 
 RUN mkdir /app
 WORKDIR /app
