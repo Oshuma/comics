@@ -1,4 +1,4 @@
-<nav class="navbar navbar-default navbar-fixed-top">
+<nav class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#app-nav" aria-expanded="false">
@@ -12,18 +12,19 @@
       <% end %>
     </div>
 
-    <div class="collapse navbar-collapse" id="app-nav">
-      <% if content_for?(:navbar) %>
-        <ul class="nav navbar-nav">
-          <li role="separator" class="divider"></li>
-          <%= content_for(:navbar) %>
-        </ul>
-      <% end %>
+    <% if content_for?(:navbar) %>
+      <ul class="nav navbar-nav">
+        <li role="separator" class="divider"></li>
+        <%= content_for(:navbar) %>
+      </ul>
+    <% end %>
 
+    <div class="collapse navbar-collapse" id="app-nav">
       <ul class="nav navbar-nav navbar-right">
-        <li class="hidden-xs hidden-sm">
+        <li>
           <%= link_to(new_comic_path) do %>
             <i class="fa fa-lg fa-cloud-upload"></i>
+            <span class="visible-xs-inline-block">Upload Comic</span>
           <% end %>
         </li>
 
@@ -31,6 +32,7 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
             <i class="fa fa-lg fa-user"></i>
             <span class="caret"></span>
+            <span class="visible-xs-inline-block">Account</span>
           </a>
 
           <ul class="dropdown-menu">
