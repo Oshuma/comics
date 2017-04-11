@@ -227,9 +227,9 @@ DEPENDENCIES
   capistrano-passenger (~> 0.2.0)
   capistrano-rails (~> 1.2.3)
   capistrano-rbenv (~> 2.1.0)
-  devise
+  devise (~> 4.2.1)
   jbuilder (~> 2.5)
-  jquery-fileupload-rails
+  jquery-fileupload-rails (~> 0.4.7)
   jquery-rails
   listen (~> 3.0.5)
   paperclip (~> 5.1.0)
