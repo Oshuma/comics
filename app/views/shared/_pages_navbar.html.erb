@@ -14,10 +14,12 @@
           <% if @page.previous_page.present? %>
             <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put) do %>
               <i class="fa fa-lg fa-chevron-left"></i>
+              <span class="visible-xs-inline-block">Previous Page</span>
             <% end %>
           <% else %>
             <%= link_to(@comic.group) do %>
               <i class="fa fa-lg fa-chevron-left"></i>
+              <span class="visible-xs-inline-block">View Group</span>
             <% end %>
           <% end %>
         </li>
@@ -25,29 +27,28 @@
         <li>
           <%= link_to(root_path) do %>
             <i class="fa fa-lg fa-book"></i>
+            <span class="visible-xs-inline-block">Home</span>
           <% end %>
         </li>
 
         <li><%= link_to(@comic.group.name, @comic.group) %></li>
         <li><%= link_to(@comic.pretty_filename, @comic) %></li>
-
-        <li role="separator" class="divider"></li>
-
-        <li>
-          <p class="navbar-text"><%= @page.number %> / <%= @comic.pages.count %></p>
-        </li>
       </ul>
+
+      <p class="navbar-text"><%= @page.number %> / <%= @comic.pages.count %></p>
 
       <ul class="nav navbar-nav navbar-right">
         <li>
           <%= link_to(finish_comic_path(@comic), method: :put, data: { confirm: 'Finished reading?' }) do %>
             <i class="fa fa-lg fa-step-forward"></i>
+            <span class="visible-xs-inline-block">Finish Comic</span>
           <% end %>
         </li>
 
         <li>
           <%= link_to(next_page_comic_page_path(@comic, @page), method: :put) do %>
             <i class="fa fa-lg fa-chevron-right"></i>
+            <span class="visible-xs-inline-block">Next Page</span>
           <% end %>
         </li>
       </ul>
