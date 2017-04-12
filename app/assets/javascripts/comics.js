@@ -97,9 +97,22 @@ $(document).on('turbolinks:load', function() {
     },
 
     done: function(e, data) {
-      // FIXME: Remove uploaded files from the 'files' array, because it uploads a dupe if more are added.
       data.context.find('.actions').remove();
       data.context.find('.progress').after('<i class="text-success fa fa-2x fa-check"></i>');
+
+      // Remove the uploaded file from the 'files' array.
+      for (var i = 0; i < files.length; i++) {
+        if (data.originalFiles.length > 0) {
+          if (files[i].originalFiles[0].name == data.originalFiles[0].name) {
+            files.splice(i, 1);
+            break;
+          }
+        }
+      }
+
+      if (files.length == 0) {
+        $('#start-upload').text('Start All').prop('disabled', false);
+      }
     },
 
     progress: function(e, data) {
@@ -115,10 +128,12 @@ $(document).on('turbolinks:load', function() {
   });
 
   $('#start-upload').on('click', function() {
+    $(this).text('Uploading...').prop('disabled', true);
     startAllUploads();
   });
 
   $('#stop-uploads').on('click', function() {
+    $('#start-upload').text('Start All').prop('disabled', false);
     cancelAllUploads();
   });
 
