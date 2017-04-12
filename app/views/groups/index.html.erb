@@ -6,6 +6,14 @@
 
     <ul class="dropdown-menu">
       <li>
+        <%= link_to(new_comic_path) do %>
+          <i class="fa fa-fw fa-cloud-upload"></i> Upload Comic
+        <% end %>
+      </li>
+
+      <li class="divider"></li>
+
+      <li>
         <%= link_to('#', id: 'toggle-empty-groups') do %>
           <i class="fa fa-fw fa-toggle-off"></i> <span>Show Empty Groups</span>
         <% end %>

@@ -29,7 +29,7 @@
       <div class="collapse" id="<%= dom_id(comic, 'options') %>" style="margin-top: 10px;">
         <%= form_tag(move_comic_path(comic), method: :put, remote: true) do %>
           <div class="form-group">
-            <%= select_tag(:group_id, options_from_collection_for_select(@groups, :id, :name), prompt: 'Select Group', class: 'move-to-group form-control') %>
+            <%= select_tag(:group_id, options_from_collection_for_select(@groups, :id, :name), prompt: 'Move comic...', class: 'move-to-group form-control') %>
           </div>
 
           <div class="form-group">

@@ -6,6 +6,12 @@
 
   <ul class="dropdown-menu" aria-labelledby="<%= dom_id(group) %>-dropdown">
     <li>
+      <%= link_to(new_comic_path(group_id: group.id)) do %>
+        <i class="fa fa-fw fa-cloud-upload"></i> Upload Comic
+      <% end %>
+    </li>
+
+    <li>
       <%= link_to('#edit-group', data: { toggle: 'modal', target: "#edit-#{dom_id(group)}-modal" }) do %>
         <i class="fa fa-fw fa-pencil"></i> Edit Group
       <% end %>
