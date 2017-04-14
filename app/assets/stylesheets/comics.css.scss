@@ -1,28 +1,16 @@
 #actions {
-  margin: 2em 0;
-}
-
-/* Mimic table appearance */
-div.table {
-  display: table;
-}
-div.table .file-row {
-  display: table-row;
-}
-div.table .file-row > div {
-  display: table-cell;
-  vertical-align: top;
-  border-top: 1px solid #ddd;
-  padding: 8px;
-}
-div.table .file-row:nth-child(odd) {
-  background: #f9f9f9;
+  margin: 1em 0;
 }
 
 /* The total progress gets shown by event listeners */
 #total-progress {
   opacity: 0;
   transition: opacity 0.3s linear;
+}
+
+#previews .progress {
+  margin-top: 1em;
+  margin-bottom: 0;
 }
 
 /* Hide the progress bar when finished */

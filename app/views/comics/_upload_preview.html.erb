@@ -1,40 +1,44 @@
 <div class="row">
-  <div class="col-md-6 col-md-offset-3">
-    <div class="table table-striped files" id="previews">
-      <div id="template" class="file-row">
-        <!-- This is used as the file preview template -->
-        <div>
-          <span class="preview"><img data-dz-thumbnail /></span>
-        </div>
+  <div id="previews" class="col-md-6 col-md-offset-3">
+    <div id="template" class="file-row panel panel-default">
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-md-5">
+            <div class="name" data-dz-name></div>
+            <strong class="error text-danger" data-dz-errormessage></strong>
+          </div>
 
-        <div>
-          <p class="name" data-dz-name></p>
-          <strong class="error text-danger" data-dz-errormessage></strong>
-        </div>
+          <div class="col-md-2">
+            <div class="size" data-dz-size></div>
+          </div>
 
-        <div>
-          <p class="size" data-dz-size></p>
-          <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>
+          <div class="col-md-5">
+            <div class="pull-right">
+              <button class="start btn btn-primary" disabled="disabled">
+                <i class="fa fa-cloud-upload"></i>
+                <span>Start</span>
+              </button>
+
+              <button data-dz-remove class="cancel btn btn-default">
+                <i class="fa fa-ban"></i>
+                <span>Cancel</span>
+              </button>
+
+              <%# The href of this link will get updated in the 'success' Dropzone callback. %>
+              <%= link_to('#delete', class: 'delete btn btn-danger', method: :delete, remote: true, data: { confirm: 'Delete comic?' }) do %>
+                <i class="fa fa-trash"></i>
+                <span>Delete</span>
+              <% end %>
+            </div>
           </div>
         </div>
 
-        <div>
-          <button class="btn btn-primary start" disabled="disabled">
-            <i class="fa fa-cloud-upload"></i>
-            <span>Start</span>
-          </button>
-
-          <button data-dz-remove class="btn btn-default cancel">
-            <i class="fa fa-ban"></i>
-            <span>Cancel</span>
-          </button>
-
-          <%# The href of this link will get updated in the 'success' Dropzone callback. %>
-          <%= link_to('#delete', class: 'btn btn-danger delete', method: :delete, remote: true, data: { confirm: 'Delete comic?' }) do %>
-            <i class="fa fa-trash"></i>
-            <span>Delete</span>
-          <% end %>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
