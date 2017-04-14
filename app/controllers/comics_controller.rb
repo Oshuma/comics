@@ -1,5 +1,8 @@
 class ComicsController < ApplicationController
 
+  # So we can use #dom_id
+  include ActionView::RecordIdentifier
+
   def new
     @groups = current_user.groups.order(name: :asc)
   end
@@ -10,7 +13,7 @@ class ComicsController < ApplicationController
 
     respond_to do |format|
       if @comic.upload(params[:comic])
-        format.json { render json: { url: comic_path(@comic) } }
+        format.json { render json: { id: dom_id(@comic), url: comic_path(@comic) } }
       else
         format.json { render json: { errors: @comic.errors.full_messages.to_sentence } }
       end

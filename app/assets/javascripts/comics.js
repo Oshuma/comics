@@ -57,7 +57,8 @@ $(document).on('turbolinks:load', function() {
     });
 
     comicUploadDropzone.on("success", function(file, serverResponse) {
-      if (serverResponse.url) {
+      if (serverResponse.id && serverResponse.url) {
+        $(file.previewElement).attr('id', serverResponse.id);
         $(file.previewElement).find('.delete').attr('href', serverResponse.url);
       } else {
         if (serverResponse.errors) {

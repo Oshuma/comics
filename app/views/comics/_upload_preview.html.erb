@@ -31,17 +31,10 @@
           </button>
 
           <%# The href of this link will get updated in the 'success' Dropzone callback. %>
-          <%= link_to('#delete', class: 'btn btn-danger delete', method: :delete, remote: true, data: { dz_remove: '', confirm: 'Delete comic?' }) do %>
+          <%= link_to('#delete', class: 'btn btn-danger delete', method: :delete, remote: true, data: { confirm: 'Delete comic?' }) do %>
             <i class="fa fa-trash"></i>
             <span>Delete</span>
           <% end %>
-
-          <!--
-          <button data-dz-remove class="btn btn-danger delete">
-            <i class="fa fa-trash"></i>
-            <span>Delete</span>
-          </button>
-          -->
         </div>
       </div>
     </div>
