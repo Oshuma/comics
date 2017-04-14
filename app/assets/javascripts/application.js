@@ -13,6 +13,9 @@
 //= require jquery
 //= require bootstrap-sprockets
 //= require jquery_ujs
-//= require jquery-fileupload/basic
+//= require dropzone
 //= require turbolinks
 //= require_tree .
+
+// Disabling autoDiscover because we're attaching dropzones manually.
+Dropzone.autoDiscover = false;
