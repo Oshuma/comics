@@ -1,58 +1,52 @@
-<%= form_for(current_user.comics.build, html: { multipart: true }) do |f| %>
-  <div class="row">
-    <div class="col-md-6 col-md-offset-3">
-      <div class="input-group">
-        <select name="comics[][group_id]" class="form-control" id="comic_group_id">
-          <option value="" selected>Group...</option>
-          <%= options_from_collection_for_select(@groups, :id, :name, params[:group_id]) %>
-        </select>
-        <span class="error text-danger"></span>
-
-        <span class="input-group-btn">
-          <%= link_to('#add-group', class: 'btn btn-default', data: { toggle: 'modal', target: '#new-group-modal' }) do %>
-            <i class="fa fa-plus"></i>
-          <% end %>
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <div class="row" style="margin-top: 15px;">
-    <div class="col-md-6 col-md-offset-3">
-      <div class="form-group">
-        <input
-           id="comic-upload"
-           type="file"
-           name="comics[][archive]"
-           multiple
-           data-url="<%= comics_path %>"
-         />
-      </div>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6 col-md-offset-3">
-      <button id="start-upload" type="button" class="btn btn-success">Start All</button>
-      <button id="stop-uploads" type="button" class="btn btn-default">Stop All</button>
-    </div>
-  </div>
+<%= form_tag(comics_path, id: 'comic_upload', multipart: true) do %>
+  <input type="hidden" name="group_id" id="comic_group_id" value="<%= params[:group_id] %>" />
 <% end %>
 
-<div class="row" style="margin-top: 15px;">
+<div class="row">
   <div class="col-md-6 col-md-offset-3">
-    <div class="progress">
-      <div id="total-progress" class="progress-bar progress-bar-success" role="progressbar" style="width: 0%;">
-      </div>
+    <div class="input-group">
+      <select class="form-control" id="select_group">
+        <option value="" selected>Group...</option>
+        <%= options_from_collection_for_select(@groups, :id, :name, params[:group_id]) %>
+      </select>
+
+      <span class="input-group-btn">
+        <%= link_to('#add-group', class: 'btn btn-default', data: { toggle: 'modal', target: '#new-group-modal' }) do %>
+          <i class="fa fa-plus"></i>
+        <% end %>
+      </span>
     </div>
+  </div>
+</div>
+
+<div id="actions" class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <!-- The fileinput-button span is used to style the file input field as button -->
+    <span class="btn btn-success fileinput-button">
+      <i class="fa fa-plus"></i>
+      <span>Add comics...</span>
+    </span>
+    <button type="submit" class="btn btn-primary start" disabled="disabled">
+      <i class="fa fa-cloud-upload"></i>
+      <span>Start All</span>
+    </button>
+    <button type="reset" class="btn btn-default cancel">
+      <i class="fa fa-ban"></i>
+      <span>Cancel All</span>
+    </button>
   </div>
 </div>
 
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
-    <ul id="upload-results" class="list-group hidden">
-    </ul>
+    <!-- The global file processing state -->
+    <span class="fileupload-process">
+      <div id="total-progress" class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>
+      </div>
+    </span>
   </div>
 </div>
 
+<%= render 'upload_preview' %>
 <%= render 'new_group_modal' %>

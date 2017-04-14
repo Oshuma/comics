@@ -5,17 +5,15 @@ class ComicsController < ApplicationController
   end
 
   def create
-    params[:comics].each do |comic_params|
-      # TODO: Move this to a worker.
-      comic = current_user.comics.build
-      next if comic.import_from_archive(comic_params)
-
-      # If there's a problem importing, redirect to the uploader.
-      redirect_to new_comic_path
-    end
+    @comic = current_user.comics.build
+    @comic.group_id = params[:group_id]
 
     respond_to do |format|
-      format.json { render json: @comics }
+      if @comic.upload(params[:comic])
+        format.json { render json: { url: comic_path(@comic) } }
+      else
+        format.json { render json: { errors: @comic.errors.full_messages.to_sentence } }
+      end
     end
   end
 

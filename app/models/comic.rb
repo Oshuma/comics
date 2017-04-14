@@ -11,12 +11,11 @@ class Comic < ApplicationRecord
     @cover_image_thumb ||= pages.first.try(:image)
   end
 
-  def import_from_archive(comic_params)
-    self.filename = comic_params[:archive].original_filename
-    self.group_id = comic_params[:group_id]
+  def upload(uploaded_file)
+    self.filename = uploaded_file.original_filename
 
     if save
-      create_pages_from_archive(comic_params[:archive])
+      create_pages_from_archive(uploaded_file)
     else
       false
     end

@@ -2,149 +2,92 @@
 // All this logic will automatically be available in application.js.
 
 $(document).on('turbolinks:load', function() {
-  var files = [];
 
-  var getFilename = function(data) {
-    return data.files[0].name;
-  };
+  if ($('#select_group').val() !== '') {
+    enableUploadButtons();
+  }
 
-  var cancelUpload = function(index) {
-    if (files[index]) {
-      if (files[index].jqXHR) files[index].jqXHR.abort();
-      files[index].context.fadeOut();
-      files[index] = null;
+  $('#select_group').on('change', function() {
+    if ($(this).val() === '') {
+      disableUploadButtons();
+    } else {
+      enableUploadButtons();
     }
-  };
+  });
 
-  var startUpload = function(index) {
-    if (files[index] == null) return;
+  // Get the template HTML and remove it from the doument
+  var previewNode = document.querySelector("#template");
+  previewNode.id = "";
+  var previewTemplate = previewNode.parentNode.innerHTML;
+  previewNode.parentNode.removeChild(previewNode);
 
-    var group = $('#comic_group_id');
-    if (group.val() == "") {
-      group.parents('.input-group').find('.error').text('Select a group.');
-      return;
-    }
+  var myDropzone = new Dropzone('#comic_upload', {
+    paramName: 'comic',
+    thumbnailWidth: 80,
+    thumbnailHeight: 80,
+    parallelUploads: 5,
+    previewTemplate: previewTemplate,
+    autoQueue: false, // Make sure the files aren't queued until manually added
+    previewsContainer: "#previews", // Define the container to display the previews
+    clickable: ".fileinput-button" // Define the element that should be used as click trigger to select files.
+  });
 
-    var data = files[index];
-    var context = data.context;
-    context.find('.start-button').text('Uploading...').prop('disabled', true);
+  myDropzone.on("addedfile", function(file) {
+    // Hookup the start button
+    file.previewElement.querySelector(".start").onclick = function() { myDropzone.enqueueFile(file); };
+  });
 
-    data.uploadedBytes = parseInt($(context).attr('uploadedBytes'), 10);
-    data.data = null;
-    $(data).submit();
-  };
+  // Update the total progress bar
+  myDropzone.on("totaluploadprogress", function(progress) {
+    document.querySelector("#total-progress .progress-bar").style.width = progress + "%";
+  });
 
-  var cancelAllUploads = function() {
-    $(files).each(function(index, file) {
-      cancelUpload(index);
-    });
+  myDropzone.on("sending", function(file) {
+    // Show the total progress bar when upload starts
+    document.querySelector("#total-progress").style.opacity = "1";
+    // And disable the start button
+    file.previewElement.querySelector(".start").setAttribute("disabled", "disabled");
+  });
 
-    $('#upload-results').addClass('hidden');
-  };
+  // Hide the total progress bar when nothing's uploading anymore
+  myDropzone.on("queuecomplete", function(progress) {
+    document.querySelector("#total-progress").style.opacity = "0";
+  });
 
-  var startAllUploads = function() {
-    $(files).each(function(index, file) {
-      startUpload(index);
-    });
-  };
-
-  var calculateProgress = function(data) {
-    var value = parseInt(data.loaded / data.total * 100, 10) || 0;
-    return value + '%';
-  };
-
-  var createProgressBar = function(progress) {
-    var progressBar = $('<div class="progress"/>');
-    progressBar.append($('<div class="progress-bar progress-bar-info" style="width: ' + progress + ';"/>'));
-    return progressBar;
-  };
-
-  $('#comic-upload').fileupload({
-    limitConcurrentUploads: 3,
-
-    add: function(e, data) {
-      var progress = calculateProgress(data);
-      var filename = getFilename(data);
-
-      var index = $('#upload-results li').length;
-      var startButton = $('<button type="button" class="btn btn-primary start-button" data-file="' + index + '">Start</button>');
-      var cancelButton = $('<button type="button" class="btn btn-default" data-file="' + index + '">Cancel</button>');
-
-      startButton.on('click', function() {
-        startUpload($(this).attr('data-file'));
-      });
-
-      cancelButton.on('click', function() {
-        cancelUpload($(this).attr('data-file'));
-      });
-
-      var row = $('<li class="list-group-item"/>');
-      row.append($('<div class="filename"/>'));
-      row.append($('<div class="progress"/>').append($('<div class="progress-bar progress-bar-info"/>')));
-      row.append($('<div class="actions"/>'));
-
-      row.find('.filename').text(filename);
-      row.find('.progress').replaceWith(createProgressBar(progress));
-      row.find('.actions').append(startButton);
-      row.find('.actions').append('&nbsp;');
-      row.find('.actions').append(cancelButton);
-
-      row.appendTo('#upload-results');
-      $('#upload-results').removeClass('hidden');
-
-      data.context = row;
-      files.push(data);
-    },
-
-    done: function(e, data) {
-      data.context.find('.actions').remove();
-      data.context.find('.progress').after('<i class="text-success fa fa-2x fa-check"></i>');
-
-      // Remove the uploaded file from the 'files' array.
-      for (var i = 0; i < files.length; i++) {
-        if (data.originalFiles.length > 0) {
-          if (files[i].originalFiles[0].name == data.originalFiles[0].name) {
-            files.splice(i, 1);
-            break;
-          }
-        }
+  myDropzone.on("success", function(file, serverResponse) {
+    if (serverResponse.url) {
+      file.previewElement.querySelector(".delete").setAttribute("href", serverResponse.url);
+    } else {
+      if (serverResponse.errors) {
+        file.previewElement.querySelector('.error').innerHTML = serverResponse.errors;
       }
-
-      if (files.length == 0) {
-        $('#start-upload').text('Start All').prop('disabled', false);
-      }
-    },
-
-    progress: function(e, data) {
-      data.context.removeData('retries');
-      var progress = calculateProgress(data);
-      data.context.find('.progress').replaceWith(createProgressBar(progress));
-    },
-
-    progressall: function(e, data) {
-      var progress = calculateProgress(data);
-      $('#total-progress').css('width', progress);
-    },
-  });
-
-  $('#start-upload').on('click', function() {
-    $(this).text('Uploading...').prop('disabled', true);
-    startAllUploads();
-  });
-
-  $('#stop-uploads').on('click', function() {
-    $('#start-upload').text('Start All').prop('disabled', false);
-    cancelAllUploads();
-  });
-
-  $('#comic_group_id').on('change', function() {
-    if ($(this).val() != "") {
-      $(this).parents('.input-group').find('.error').text('');
     }
   });
+
+  // Setup the buttons for all transfers
+  // The "add files" button doesn't need to be setup because the config
+  // `clickable` has already been specified.
+  document.querySelector("#actions .start").onclick = function() {
+    myDropzone.enqueueFiles(myDropzone.getFilesWithStatus(Dropzone.ADDED));
+  };
+  document.querySelector("#actions .cancel").onclick = function() {
+    myDropzone.removeAllFiles(true);
+  };
+
+  function enableUploadButtons() {
+    $('#actions .start').prop('disabled', false);
+    $('.file-row .start').prop('disabled', false);
+  }
+
+  function disableUploadButtons() {
+    $('#actions .start').prop('disabled', true);
+    $('.file-row .start').prop('disabled', true);
+  }
+
 
   // autofocus new group modal's name field.
   $('#new-group-modal').on('shown.bs.modal', function() {
     $('#group_name').focus();
   });
+
 });
