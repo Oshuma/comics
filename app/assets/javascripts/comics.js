@@ -16,12 +16,12 @@ $(document).on('turbolinks:load', function() {
   });
 
   // Get the template HTML and remove it from the doument
-  var previewNode = document.querySelector("#template");
-  previewNode.id = "";
-  var previewTemplate = previewNode.parentNode.innerHTML;
-  previewNode.parentNode.removeChild(previewNode);
+  var previewNode = $('#template');
+  previewNode.removeAttr('id');
+  var previewTemplate = previewNode.parent().html();
+  previewNode.remove();
 
-  var myDropzone = new Dropzone('#comic_upload', {
+  var comicUploadDropzone = new Dropzone('#comic_upload', {
     paramName: 'comic',
     thumbnailWidth: 80,
     thumbnailHeight: 80,
@@ -32,34 +32,34 @@ $(document).on('turbolinks:load', function() {
     clickable: ".fileinput-button" // Define the element that should be used as click trigger to select files.
   });
 
-  myDropzone.on("addedfile", function(file) {
+  comicUploadDropzone.on("addedfile", function(file) {
     // Hookup the start button
-    file.previewElement.querySelector(".start").onclick = function() { myDropzone.enqueueFile(file); };
+    $(file.previewElement).find('.start').on('click', function() { comicUploadDropzone.enqueueFile(file); });
   });
 
   // Update the total progress bar
-  myDropzone.on("totaluploadprogress", function(progress) {
-    document.querySelector("#total-progress .progress-bar").style.width = progress + "%";
+  comicUploadDropzone.on("totaluploadprogress", function(progress) {
+    $('#total-progress .progress-bar').css('width', progress + '%');
   });
 
-  myDropzone.on("sending", function(file) {
+  comicUploadDropzone.on("sending", function(file) {
     // Show the total progress bar when upload starts
-    document.querySelector("#total-progress").style.opacity = "1";
+    $('#total-progress').css('opacity', '1');
     // And disable the start button
-    file.previewElement.querySelector(".start").setAttribute("disabled", "disabled");
+    $(file.previewElement).find('.start').prop('disabled', true);
   });
 
   // Hide the total progress bar when nothing's uploading anymore
-  myDropzone.on("queuecomplete", function(progress) {
-    document.querySelector("#total-progress").style.opacity = "0";
+  comicUploadDropzone.on("queuecomplete", function(progress) {
+    $('#total-progress').css('opacity', '0');
   });
 
-  myDropzone.on("success", function(file, serverResponse) {
+  comicUploadDropzone.on("success", function(file, serverResponse) {
     if (serverResponse.url) {
-      file.previewElement.querySelector(".delete").setAttribute("href", serverResponse.url);
+      $(file.previewElement).find('.delete').attr('href', serverResponse.url);
     } else {
       if (serverResponse.errors) {
-        file.previewElement.querySelector('.error').innerHTML = serverResponse.errors;
+        $(file.previewElement).find('.error').html(serverResponse.errors);
       }
     }
   });
@@ -67,12 +67,13 @@ $(document).on('turbolinks:load', function() {
   // Setup the buttons for all transfers
   // The "add files" button doesn't need to be setup because the config
   // `clickable` has already been specified.
-  document.querySelector("#actions .start").onclick = function() {
-    myDropzone.enqueueFiles(myDropzone.getFilesWithStatus(Dropzone.ADDED));
-  };
-  document.querySelector("#actions .cancel").onclick = function() {
-    myDropzone.removeAllFiles(true);
-  };
+  $('#actions .start').on('click', function(e) {
+    comicUploadDropzone.enqueueFiles(comicUploadDropzone.getFilesWithStatus(Dropzone.ADDED));
+  });
+
+  $('#actions .cancel').on('click', function() {
+    comicUploadDropzone.removeAllFiles(true);
+  });
 
   function enableUploadButtons() {
     $('#actions .start').prop('disabled', false);
