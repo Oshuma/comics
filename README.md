@@ -18,10 +18,10 @@ $ docker-compose run web rake db:create
 $ docker-compose run web rake db:migrate
 ```
 
-There's a wrapper script `dc.sh` that can be used to run commands in the `web` container:
+There's a wrapper script `web.sh` that can be used to run commands in the `web` container:
 
 ```
-$ ./dc.sh rake routes
+$ ./web.sh rake routes
 ```
 
 ## Deploy
