@@ -4,7 +4,19 @@
 $(document).on('turbolinks:load', function() {
 
   $('#toggle-empty-groups').on('click', function(e) {
-    $('.empty-group').toggleClass('hidden');
+    var label = $(this).find('span');
+
+    if ($(this).data('hidden-groups-visible') === 'true') {
+      $(this).find('i.fa').removeClass('fa-toggle-on').addClass('fa-toggle-off');
+      label.text(label.text().replace(/Hide/, 'Show'));
+      $(this).data('hidden-groups-visible', 'false');
+      $('.empty-group').addClass('hidden');
+    } else {
+      $(this).find('i.fa').removeClass('fa-toggle-off').addClass('fa-toggle-on');
+      label.text(label.text().replace(/Show/, 'Hide'));
+      $(this).data('hidden-groups-visible', 'true');
+      $('.empty-group').removeClass('hidden');
+    }
     e.preventDefault();
   });
 
