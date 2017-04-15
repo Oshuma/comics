@@ -12,7 +12,9 @@ $(document).on('turbolinks:load', function() {
     $('#select_group').on('change', function() {
       if ($(this).val() === '') {
         disableUploadButtons();
+        $('#comic_group_id').val('');
       } else {
+        $('#comic_group_id').val($(this).val());
         enableUploadButtons();
       }
     });
