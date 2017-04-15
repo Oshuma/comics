@@ -19,3 +19,7 @@
 
 // Disabling autoDiscover because we're attaching dropzones manually.
 Dropzone.autoDiscover = false;
+
+$(document).on('turbolinks:load', function() {
+  $('[data-toggle="tooltip"]').tooltip();
+});
