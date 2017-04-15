@@ -12,7 +12,7 @@
       <ul class="nav navbar-nav navbar-left">
         <li>
           <% if @page.previous_page.present? %>
-            <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put) do %>
+            <%= link_to(previous_page_comic_page_path(@comic, @page), method: :put, id: 'previous_page') do %>
               <i class="fa fa-lg fa-chevron-left"></i>
               <span class="visible-xs-inline-block">Previous Page</span>
             <% end %>
@@ -46,7 +46,7 @@
         </li>
 
         <li>
-          <%= link_to(next_page_comic_page_path(@comic, @page), method: :put) do %>
+          <%= link_to(next_page_comic_page_path(@comic, @page), method: :put, id: 'next_page') do %>
             <i class="fa fa-lg fa-chevron-right"></i>
             <span class="visible-xs-inline-block">Next Page</span>
           <% end %>
