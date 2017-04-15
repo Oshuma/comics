@@ -17,6 +17,7 @@ $(document).on('turbolinks:load', function() {
       $(this).data('hidden-groups-visible', 'true');
       $('.empty-group').removeClass('hidden');
     }
+
     e.preventDefault();
   });
 

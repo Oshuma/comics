@@ -1,7 +1,9 @@
 <% content_for(:navbar) do %>
-  <p class="navbar-text">
-    <i class="fa fa-bar-chart"></i> Stats
-  </p>
+  <li class="active">
+    <%= link_to(stats_path) do %>
+      <i class="fa fa-bar-chart"></i> Stats
+    <% end %>
+  </li>
 <% end %>
 
 <div class="row">
