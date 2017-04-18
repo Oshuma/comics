@@ -27,5 +27,8 @@ Rails.application.routes.draw do
 
   get 'stats' => 'stats#index'
 
+  get 'setup' => 'setup#new'
+  post 'setup' => 'setup#create'
+
   root 'groups#index'
 end

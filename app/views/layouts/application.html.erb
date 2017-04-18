@@ -14,6 +14,8 @@
   <body>
     <% if user_signed_in? %>
       <%= render 'shared/navbar' %>
+    <% elsif current_page?(setup_path) %>
+      <%= render 'shared/setup_navbar' %>
     <% end %>
 
     <div class="container-fluid">

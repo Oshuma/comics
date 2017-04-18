@@ -1,0 +1,25 @@
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#app-nav" aria-expanded="false">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+
+      <%= link_to(root_path, class: 'navbar-brand') do %>
+        <i class="fa fa-lg fa-book"></i> Comics
+      <% end %>
+    </div>
+
+    <div class="collapse navbar-collapse" id="app-nav">
+      <ul class="nav navbar-nav">
+        <li>
+          <p class="navbar-text">
+            <i class="fa fa-cog"></i> Setup
+          </p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

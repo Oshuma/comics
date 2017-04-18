@@ -1,5 +1,7 @@
 class ComicsController < ApplicationController
 
+  before_action :authenticate_user!
+
   # So we can use #dom_id
   include ActionView::RecordIdentifier
 
