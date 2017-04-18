@@ -6,6 +6,11 @@
       </div>
 
       <div class="panel-body">
+        <p class="text-muted">
+          Create an initial admin user. This user can upload and manage comics like any normal user.
+        </p>
+
+
         <%= form_for(@user, url: setup_path) do |f| %>
           <div class="form-group">
             <%= f.label :email %>

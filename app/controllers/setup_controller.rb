@@ -9,7 +9,8 @@ class SetupController < ApplicationController
     @user.admin = true
 
     if @user.save
-      redirect_to new_user_session_path, notice: 'Admin user created.'
+      sign_in(:user, @user)
+      redirect_to root_path, notice: 'Admin user created.'
     else
       render :new
     end
