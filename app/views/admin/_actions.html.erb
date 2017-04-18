@@ -1,0 +1,21 @@
+<div class="dropdown">
+  <button class="btn btn-default dropdown-toggle" type="button" id="<%= dom_id(user) %>-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    <i class="fa fa-cog"></i>
+  </button>
+
+  <ul class="dropdown-menu" aria-labelledby="<%= dom_id(user) %>-dropdown">
+    <% if user.admin? %>
+      <li>
+        <%= link_to(disable_admin_admin_user_path(user), method: :patch, data: { confirm: 'Disable admin?' }) do %>
+          <i class="fa fa-fw fa-user-times"></i> Disable Admin
+        <% end %>
+      </li>
+    <% else %>
+      <li>
+        <%= link_to(enable_admin_admin_user_path(user), method: :patch, data: { confirm: 'Enable admin?' }) do %>
+          <i class="fa fa-fw fa-user-plus"></i> Enable Admin
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</div>

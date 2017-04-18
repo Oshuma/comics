@@ -30,5 +30,15 @@ Rails.application.routes.draw do
   get 'setup' => 'setup#new'
   post 'setup' => 'setup#create'
 
+  get 'admin' => 'admin#index'
+  namespace :admin do
+    resources :users do
+      member do
+        patch :enable_admin
+        patch :disable_admin
+      end
+    end
+  end
+
   root 'groups#index'
 end

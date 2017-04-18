@@ -1,0 +1,55 @@
+<% content_for(:navbar) do %>
+  <li class="active">
+    <%= link_to(admin_path) do %>
+      <i class="fa fa-cogs"></i> Admin
+    <% end %>
+  </li>
+<% end %>
+
+<div class="row">
+  <div class="col-md-12">
+    <p class="text-muted"><%= page_entries_info @users %></p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <td style="width: 1%;">Admin</td>
+          <td style="width: 1%;"></td>
+          <td>Email</td>
+          <td>Groups</td>
+          <td>Comics</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td>
+              <% if user.admin? %>
+                <i class="fa fa-lg fa-check text-success"></i>
+              <% end %>
+            </td>
+
+            <td>
+              <%= render 'actions', user: user %>
+            </td>
+
+            <td><%= user.email %></td>
+            <td><%= user.groups.count %></td>
+            <td><%= user.comics.count %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <%= paginate @users %>
+  </div>
+</div>

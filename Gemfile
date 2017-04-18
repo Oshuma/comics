@@ -39,6 +39,7 @@ gem 'bootstrap-sass', '~> 3.3.7'
 gem 'devise', '~> 4.2.1'
 gem 'dropzonejs-rails', '~> 0.7.3'
 gem 'font-awesome-sass', '~> 4.7.0'
+gem 'kaminari', '~> 1.0.1'
 gem 'paperclip', '~> 5.1.0'
 
 group :development, :test do
