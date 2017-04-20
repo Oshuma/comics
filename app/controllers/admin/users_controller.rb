@@ -12,9 +12,12 @@ class Admin::UsersController < ApplicationController
     end
   end
 
-  # TODO: Should probably have some checks so an admin can't disable themselves.
   def disable_admin
     @user = User.find(params[:id])
+
+    if @user == current_user
+      return redirect_to admin_path, alert: "Can't remove yourself as admin."
+    end
 
     if @user.update(admin: false)
       redirect_to admin_path, notice: 'User is no longer an admin.'
