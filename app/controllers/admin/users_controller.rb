@@ -26,4 +26,18 @@ class Admin::UsersController < ApplicationController
     end
   end
 
+  def destroy
+    @user = User.find(params[:id])
+
+    if @user == current_user
+      return redirect_to admin_path, alert: "Can't delete your own account."
+    end
+
+    if @user.destroy
+      redirect_to admin_path, notice: 'User and their comics were removed.'
+    else
+      redirect_to admin_path, alert: 'Could not remove user.'
+    end
+  end
+
 end

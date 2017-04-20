@@ -7,7 +7,7 @@
     <% if user.admin? %>
       <li>
         <% if user == current_user %>
-          <%= link_to('#', disabled: true, class: 'disabled-link', title: "Can't disable admin on yourself.", data: { toggle: 'tooltip', placement: 'right' }) do %>
+          <%= link_to('#', disabled: true, class: 'disabled-link', title: "Can't remove yourself as admin.", data: { toggle: 'tooltip', placement: 'right' }) do %>
             <i class="fa fa-fw fa-user-times"></i> Disable Admin
           <% end %>
         <% else %>
@@ -23,5 +23,19 @@
         <% end %>
       </li>
     <% end %>
+
+    <li class="divider"></li>
+
+    <li>
+      <% if user == current_user %>
+        <%= link_to('#', disabled: true, class: 'disabled-link', title: "Can't delete your own account.", data: { toggle: 'tooltip', placement: 'right' }) do %>
+          <i class="fa fa-fw fa-trash"></i> Delete User
+        <% end %>
+      <% else %>
+        <%= link_to(admin_user_path(user), method: :delete, data: { confirm: 'Remove this user and their comics?' }) do %>
+          <i class="fa fa-fw fa-trash"></i> Delete User
+        <% end %>
+      <% end %>
+    </li>
   </ul>
 </div>
