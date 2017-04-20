@@ -4,10 +4,18 @@
       <i class="fa fa-cogs"></i> Admin
     <% end %>
   </li>
+
+  <li>
+    <%= link_to('#add-user', data: { toggle: 'modal', target: '#new-user-modal' }) do %>
+      <i class="fa fa-user-plus"></i> Add User
+    <% end %>
+  </li>
 <% end %>
 
+<%= render 'new_user_modal' %>
+
 <div class="row">
-  <div class="col-md-12">
+  <div class="col-md-11">
     <p class="text-muted"><%= page_entries_info @users %></p>
   </div>
 </div>
