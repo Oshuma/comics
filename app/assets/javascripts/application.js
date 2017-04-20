@@ -23,4 +23,8 @@ Dropzone.autoDiscover = false;
 
 $(document).on('turbolinks:load', function() {
   $('[data-toggle="tooltip"]').tooltip();
+
+  $('.disabled-link').on('click', function(e) {
+    e.preventDefault();
+  });
 });

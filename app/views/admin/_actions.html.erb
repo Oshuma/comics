@@ -6,8 +6,14 @@
   <ul class="dropdown-menu" aria-labelledby="<%= dom_id(user) %>-dropdown">
     <% if user.admin? %>
       <li>
-        <%= link_to(disable_admin_admin_user_path(user), method: :patch, data: { confirm: 'Disable admin?' }) do %>
-          <i class="fa fa-fw fa-user-times"></i> Disable Admin
+        <% if user == current_user %>
+          <%= link_to('#', disabled: true, class: 'disabled-link', title: "Can't disable admin on yourself.", data: { toggle: 'tooltip', placement: 'right' }) do %>
+            <i class="fa fa-fw fa-user-times"></i> Disable Admin
+          <% end %>
+        <% else %>
+          <%= link_to(disable_admin_admin_user_path(user), method: :patch, data: { confirm: 'Disable admin?' }) do %>
+            <i class="fa fa-fw fa-user-times"></i> Disable Admin
+          <% end %>
         <% end %>
       </li>
     <% else %>

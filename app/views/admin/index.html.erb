@@ -17,7 +17,6 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <td style="width: 1%;">Admin</td>
           <td style="width: 1%;"></td>
           <td>Email</td>
           <td>Groups</td>
@@ -29,16 +28,21 @@
         <% @users.each do |user| %>
           <tr>
             <td>
-              <% if user.admin? %>
-                <i class="fa fa-lg fa-check text-success"></i>
-              <% end %>
-            </td>
-
-            <td>
               <%= render 'actions', user: user %>
             </td>
 
-            <td><%= user.email %></td>
+            <td>
+              <%= user.email %>
+
+              <% if user == current_user %>
+                <span class="label label-primary">Your Account</span>
+              <% end %>
+
+              <% if user.admin? %>
+                <span class="label label-info">Admin</span>
+              <% end %>
+            </td>
+
             <td><%= user.groups.count %></td>
             <td><%= user.comics.count %></td>
           </tr>
