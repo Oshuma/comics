@@ -21,9 +21,9 @@
 # role :web, %w{user1@primary.com user2@additional.com}, other_property: :other_value
 # role :db,  %w{deploy@example.com}
 
-role :app, ENV['DEPLOY_HOST'] || raise "Set 'DEPLOY_HOST' env var when deploying."
-role :web, ENV['DEPLOY_HOST'] || raise "Set 'DEPLOY_HOST' env var when deploying."
-role :db,  ENV['DEPLOY_HOST'] || raise "Set 'DEPLOY_HOST' env var when deploying."
+role :app, %W{#{ENV['DEPLOY_HOST']}}
+role :web, %W{#{ENV['DEPLOY_HOST']}}
+role :db,  %W{#{ENV['DEPLOY_HOST']}}
 
 
 # Configuration
