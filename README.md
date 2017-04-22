@@ -32,6 +32,16 @@ This will setup an admin account, which you can later use to add more users, etc
 
 Any Unix-like server running Ruby 2+ and Postgres 9.5+ should work.
 
+```
+./web.sh cap production deploy DEPLOY_HOST=example.com
+```
+
+Set `DEPLOY_HOST` to anything capistrano's roles understands.  For example:
+
+```
+./web.sh cap production deploy DEPLOY_HOST=foo@example.com:1234
+```
+
 | Requirements | | |
 | ------------ |-|-|
 | imagemagick | `apt-get install imagemagick` | |
