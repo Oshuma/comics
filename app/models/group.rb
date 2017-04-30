@@ -29,7 +29,9 @@ class Group < ApplicationRecord
   # Returns the Comic after `current_comic` or `self` if last Comic.
   def next_comic(current_comic)
     comics.each_slice(2) do |one, two|
-      return two if current_comic.id.to_s == one.id.to_s
+      if current_comic == one
+        two.present? ? two : self
+      end
     end
 
     self
