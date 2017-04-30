@@ -8,4 +8,5 @@ class User < ApplicationRecord
 
   has_many :groups, dependent: :destroy
   has_many :comics, dependent: :destroy
+  has_many :histories, dependent: :destroy
 end
