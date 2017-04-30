@@ -22,7 +22,7 @@ class Comic < ApplicationRecord
   end
 
   def finished!
-    pages.update_all(read: true)
+    pages.update_all(read: true) ? record_history! : false
   end
 
   def read?
@@ -32,6 +32,10 @@ class Comic < ApplicationRecord
   # Returns true if there is at least one read page.
   def reading?
     pages.any? { |page| page.read? }
+  end
+
+  def record_history!
+    user.histories.find_or_create_by!(group_name: group.name, comic_name: filename)
   end
 
   def move_to(group)

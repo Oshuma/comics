@@ -2,6 +2,7 @@
   <% @histories.each do |history| %>
     <li class="list-group-item">
       <%= link_to_history_group(history) %> / <%= link_to_history_comic(history) %>
+      <span class="pull-right text-muted"><em><%= history.created_at.to_formatted_s(:history) %></em></span>
     </li>
   <% end %>
 </ul>

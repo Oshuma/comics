@@ -14,6 +14,7 @@ class PagesController < ApplicationController
     if @next_page
       redirect_to comic_page_path(@comic, @next_page)
     else
+      @comic.record_history!
       redirect_to next_comic
     end
   end
