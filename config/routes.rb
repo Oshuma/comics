@@ -25,6 +25,7 @@ Rails.application.routes.draw do
     end
   end
 
+  get 'history' => 'history#index'
   get 'stats' => 'stats#index'
 
   get 'setup' => 'setup#new'

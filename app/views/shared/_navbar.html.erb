@@ -37,6 +37,12 @@
 
           <ul class="dropdown-menu">
             <li>
+              <%= link_to(history_path) do %>
+                <i class="fa fa-fw fa-history"></i> Read History
+              <% end %>
+            </li>
+
+            <li>
               <%= link_to(stats_path) do %>
                 <i class="fa fa-fw fa-bar-chart"></i> Stats
               <% end %>

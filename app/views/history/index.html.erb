@@ -1,0 +1,23 @@
+<% content_for(:navbar) do %>
+  <li class="active">
+    <%= link_to(history_path) do %>
+      <i class="fa fa-history"></i> Read History
+    <% end %>
+  </li>
+<% end %>
+
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <div class="panel panel-default">
+      <div class="panel-heading"><strong>Read History</strong></div>
+
+      <% if @histories.present? %>
+        <%= render 'histories' %>
+      <% else %>
+        <div class="panel-body">
+          The comics you have already read will show up in this list.
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+<ul class="list-group">
+  <% @histories.each do |history| %>
+    <li class="list-group-item">
+      <%= link_to_history_group(history) %> / <%= link_to_history_comic(history) %>
+    </li>
+  <% end %>
+</ul>
