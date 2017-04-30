@@ -53,4 +53,7 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+
+  # Allow web console from local docker network.
+  config.web_console.whitelisted_ips = '172.18.0.0/16'
 end
