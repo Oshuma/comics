@@ -21,3 +21,15 @@
     </div>
   </div>
 </div>
+
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <p class="text-muted"><%= page_entries_info @histories %></p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <%= paginate @histories %>
+  </div>
+</div>
