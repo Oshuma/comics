@@ -5,7 +5,7 @@ module HistoryHelper
     if group.present?
       link_to(group.name, group)
     else
-      history.group_name
+      link_to(history.group_name, new_comic_path(group_name: history.group_name))
     end
   end
 

@@ -11,7 +11,15 @@ class ComicsController < ApplicationController
 
   def create
     @comic = current_user.comics.build
-    @comic.group_id = params[:group_id]
+
+    if params[:group_id].present?
+      @comic.group_id = params[:group_id]
+    elsif params[:group_name].present?
+      @group = current_user.groups.find_or_create_by(name: params[:group_name])
+      @comic.group_id = @group.id
+    else
+      return redirect_to(new_comic_path, alert: 'Please select a group.')
+    end
 
     respond_to do |format|
       if @comic.upload(params[:comic])

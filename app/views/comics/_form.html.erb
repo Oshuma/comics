@@ -1,12 +1,19 @@
 <%= form_tag(comics_path, id: 'comic_upload', multipart: true) do %>
   <input type="hidden" name="group_id" id="comic_group_id" value="<%= params[:group_id] %>" />
+  <input type="hidden" name="group_name" id="comic_group_name" value="<%= params[:group_name] %>" />
 <% end %>
 
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
     <div class="input-group">
       <select class="form-control" id="select_group">
-        <option value="" selected>Group...</option>
+        <% if params[:group_name].present? %>
+          <option value="">Group...</option>
+          <option value="<%= params[:group_name] %>" selected><%= params[:group_name] %></option>
+        <% else %>
+          <option value="" selected>Group...</option>
+        <% end %>
+
         <%= options_from_collection_for_select(@groups, :id, :name, params[:group_id]) %>
       </select>
 
