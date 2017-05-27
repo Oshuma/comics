@@ -3,8 +3,20 @@
   <input type="hidden" name="group_name" id="comic_group_name" value="<%= params[:group_name] %>" />
 <% end %>
 
+<% if @groups.empty? %>
+  <div class="row">
+    <div class="col-md-5 col-md-offset-3">
+      <div class="well well-lg text-center">
+        <h1 class="text-muted">No Groups</h1>
+
+        <p>Create a group with the <i class="fa fa-plus"></i> button, then add some comics.</p>
+      </div>
+    </div>
+  </div>
+<% end %>
+
 <div class="row">
-  <div class="col-md-6 col-md-offset-3">
+  <div class="col-md-5 col-md-offset-3">
     <div class="input-group">
       <select class="form-control" id="select_group">
         <% if params[:group_name].present? %>
@@ -27,25 +39,27 @@
 </div>
 
 <div id="actions" class="row">
-  <div class="col-md-6 col-md-offset-3">
+  <div class="col-md-5 col-md-offset-3">
     <!-- The fileinput-button span is used to style the file input field as button -->
-    <span class="btn btn-success fileinput-button">
+    <%= content_tag(:button, class: 'btn btn-success fileinput-button', disabled: (@groups.empty? ? true : false)) do %>
       <i class="fa fa-plus"></i>
-      <span>Add comics...</span>
-    </span>
+      <span>Add Comics</span>
+    <% end %>
+
     <button type="submit" class="btn btn-primary start" disabled="disabled">
       <i class="fa fa-cloud-upload"></i>
       <span>Start All</span>
     </button>
-    <button type="reset" class="btn btn-default cancel">
+
+    <%= content_tag(:button, type: 'reset', class: 'btn btn-default cancel', disabled: (@groups.empty? ? true : false)) do %>
       <i class="fa fa-ban"></i>
       <span>Cancel All</span>
-    </button>
+    <% end %>
   </div>
 </div>
 
 <div class="row">
-  <div class="col-md-6 col-md-offset-3">
+  <div class="col-md-5 col-md-offset-3">
     <!-- The global file processing state -->
     <span class="fileupload-process">
       <div id="total-progress" class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
