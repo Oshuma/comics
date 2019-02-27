@@ -7,7 +7,7 @@ end
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.2.0'
+gem 'rails', '~> 5.2.2'
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 0.18'
 # Use Puma as the app server
@@ -35,12 +35,18 @@ gem 'jbuilder', '~> 2.7.0'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
-gem 'bootstrap-sass', '~> 3.3.7'
+gem 'bootstrap-sass', '~> 3.4.1'
 gem 'devise', '~> 4.4.3'
 gem 'dropzonejs-rails', '~> 0.7.3'
 gem 'font-awesome-sass', '~> 4.7.0'
 gem 'kaminari', '~> 1.0.1'
 gem 'paperclip', '~> 6.0.0'
+
+# Locking these for security updates:
+gem 'nokogiri', '~> 1.8.5'
+gem 'rack', '~> 2.0.6'
+gem 'loofah', '~> 2.2.3'
+gem 'sprockets', '~> 3.7.2'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
