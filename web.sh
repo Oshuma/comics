@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker-compose run web "$@"
+docker-compose run --rm web "$@"
