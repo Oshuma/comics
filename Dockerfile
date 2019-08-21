@@ -1,4 +1,4 @@
-FROM ruby:2.3-alpine
+FROM ruby:2.6-alpine
 
 ARG GIT_VERSION
 ARG BUILD_DATE
