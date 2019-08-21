@@ -1,5 +1,5 @@
-# config valid only for current version of Capistrano
-lock "3.8.0"
+# config valid for current version and patch releases of Capistrano
+lock "~> 3.11.0"
 
 set :application, "comics"
 set :repo_url, "https://github.com/Oshuma/comics.git"
@@ -8,7 +8,7 @@ set :repo_url, "https://github.com/Oshuma/comics.git"
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
 # Default deploy_to directory is /var/www/my_app_name
-set :deploy_to, "/apps/twono.de/comics"
+set :deploy_to, ENV['DEPLOY_TO']
 
 # Default value for :format is :airbrussh.
 # set :format, :airbrussh
@@ -35,7 +35,7 @@ append :linked_dirs, "log", "public/system"
 
 # rbenv
 set :rbenv_type, :user
-set :rbenv_ruby, '2.4.0'
+set :rbenv_ruby, '2.6.3'
 set :rbenv_prefix, "RBENV_ROOT=#{fetch(:rbenv_path)} RBENV_VERSION=#{fetch(:rbenv_ruby)} #{fetch(:rbenv_path)}/bin/rbenv exec"
 set :rbenv_map_bins, %w{rake gem bundle ruby rails}
 
