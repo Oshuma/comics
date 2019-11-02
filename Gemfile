@@ -36,7 +36,7 @@ gem 'jbuilder', '~> 2.7.0'
 # gem 'capistrano-rails', group: :development
 
 gem 'bootstrap-sass', '~> 3.4.1'
-gem 'devise', '~> 4.6.0'
+gem 'devise', '~> 4.7.1'
 gem 'dropzonejs-rails', '~> 0.7.3'
 gem 'font-awesome-sass', '~> 4.7.0'
 gem 'kaminari', '~> 1.0.1'
