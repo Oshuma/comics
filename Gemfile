@@ -45,7 +45,7 @@ gem 'paperclip', '~> 6.0.0'
 # Locking these for security updates:
 gem 'nokogiri', '~> 1.10.4'
 gem 'rack', '~> 2.0.6'
-gem 'loofah', '~> 2.2.3'
+gem 'loofah', '~> 2.3.1'
 gem 'sprockets', '~> 3.7.2'
 
 group :development, :test do
