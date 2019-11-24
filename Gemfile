@@ -36,7 +36,7 @@ gem 'jbuilder', '~> 2.7.0'
 # gem 'capistrano-rails', group: :development
 
 gem 'bootstrap-sass', '~> 3.4.1'
-gem 'devise', '~> 4.6.0'
+gem 'devise', '~> 4.7.1'
 gem 'dropzonejs-rails', '~> 0.7.3'
 gem 'font-awesome-sass', '~> 4.7.0'
 gem 'kaminari', '~> 1.0.1'
@@ -45,7 +45,7 @@ gem 'paperclip', '~> 6.0.0'
 # Locking these for security updates:
 gem 'nokogiri', '~> 1.10.4'
 gem 'rack', '~> 2.0.6'
-gem 'loofah', '~> 2.2.3'
+gem 'loofah', '~> 2.3.1'
 gem 'sprockets', '~> 3.7.2'
 
 group :development, :test do
