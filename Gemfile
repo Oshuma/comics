@@ -39,7 +39,7 @@ gem 'bootstrap-sass', '~> 3.4.1'
 gem 'devise', '~> 4.7.1'
 gem 'dropzonejs-rails', '~> 0.7.3'
 gem 'font-awesome-sass', '~> 4.7.0'
-gem 'kaminari', '~> 1.0.1'
+gem 'kaminari', '~> 1.2.1'
 gem 'paperclip', '~> 6.0.0'
 
 # Locking these for security updates:
