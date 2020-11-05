@@ -2,6 +2,10 @@ version: '2'
 services:
   db:
     image: postgres:alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: comics_development
 
   web:
     build: .
