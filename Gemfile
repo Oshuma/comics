@@ -43,7 +43,7 @@ gem 'kaminari', '~> 1.2.1'
 gem 'paperclip', '~> 6.0.0'
 
 # Locking these for security updates:
-gem 'nokogiri', '~> 1.10.10'
+gem 'nokogiri', '~> 1.12.5'
 gem 'rack', '~> 2.1.4'
 gem 'loofah', '~> 2.3.1'
 gem 'sprockets', '~> 3.7.2'
