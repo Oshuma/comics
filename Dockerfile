@@ -1,4 +1,4 @@
-FROM ruby:2.6-alpine
+FROM ruby:2-alpine
 
 ARG GIT_VERSION
 ARG BUILD_DATE
@@ -16,9 +16,15 @@ RUN apk add --update --no-cache \
       nodejs \
       postgresql-dev \
       tzdata \
-      unrar \
       unzip \
+      wget \
     && rm -rf /var/cache/apk/*
+
+# Grab and compile unrar source from here: https://www.rarlab.com/rar_add.htm
+RUN wget -O - https://www.rarlab.com/rar/unrarsrc-6.1.7.tar.gz | tar xz \
+      && cd unrar/ \
+      && make && make install \
+      && rm -rf unrar/
 
 RUN mkdir /app
 WORKDIR /app

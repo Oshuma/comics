@@ -8,7 +8,7 @@ Tablet-first comic reader.
 
 ## Development Setup
 
-Local development is done with [Docker Compose](https://docs.docker.com/compose/) and uses the [ruby:2.3-alpine](https://hub.docker.com/r/library/ruby/tags/2.3-alpine/) and [postgres:alpine](https://hub.docker.com/r/library/postgres/tags/alpine/) repos.
+Local development is done with [Docker Compose](https://docs.docker.com/compose/) and uses the [ruby:alpine](https://hub.docker.com/_/ruby) and [postgres:alpine](https://hub.docker.com/_/postgres) repos.
 Make sure you have Docker Compose installed, then run:
 
 ```

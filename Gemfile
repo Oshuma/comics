@@ -7,7 +7,7 @@ end
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.2.4.4'
+gem 'rails', '~> 5.2.8'
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 0.18'
 # Use Puma as the app server
@@ -40,12 +40,13 @@ gem 'devise', '~> 4.7.1'
 gem 'dropzonejs-rails', '~> 0.7.3'
 gem 'font-awesome-sass', '~> 4.7.0'
 gem 'kaminari', '~> 1.2.1'
-gem 'paperclip', '~> 6.0.0'
 
 # Locking these for security updates:
-gem 'nokogiri', '~> 1.10.10'
-gem 'rack', '~> 2.1.4'
 gem 'loofah', '~> 2.3.1'
+gem 'mimemagic', '~> 0.3.10'
+gem 'nokogiri', '~> 1.10.10'
+gem 'paperclip', '~> 6.1.0'
+gem 'rack', '~> 2.1.4'
 gem 'sprockets', '~> 3.7.2'
 gem "websocket-extensions", '~> 0.1.5'
 
