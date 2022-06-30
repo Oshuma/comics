@@ -18,7 +18,7 @@ $ docker-compose up
 Once both containers are running (`web` and `db`), run the setup helper:
 
 ```
-$ docker-compose run web ./bin/setup
+$ docker-compose run --rm web ./bin/setup
 ```
 
 There's a wrapper script `web.sh` that can be used to run commands in the `web` container:
