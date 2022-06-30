@@ -7,15 +7,13 @@ end
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 6.0.5'
+gem 'rails', '~> 6.1.6'
 # Use postgresql as the database for Active Record
 gem 'pg'
 # Use Puma as the app server
 gem 'puma'
 # Use SCSS for stylesheets
 gem 'sass-rails'
-# Use Uglifier as compressor for JavaScript assets
-gem 'uglifier' # FIXME: Remove this after update.
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
