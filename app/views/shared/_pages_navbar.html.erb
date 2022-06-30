@@ -31,6 +31,7 @@
           <% end %>
         </li>
 
+        <%# FIXME: The filename should be truncated. %>
         <li><%= link_to(@comic.group.name, @comic.group) %></li>
         <li><%= link_to(@comic.pretty_filename, @comic) %></li>
       </ul>

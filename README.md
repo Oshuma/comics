@@ -1,6 +1,6 @@
 # Comics
 
-Tablet-first comic reader.
+Web based, tablet-first comic reader.
 
 ![Groups](public/screenshots/001.png)
 ![Group](public/screenshots/002.png)
