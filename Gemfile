@@ -6,25 +6,15 @@ git_source(:github) do |repo_name|
 end
 
 
-# Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 6.1.6'
-# Use postgresql as the database for Active Record
-gem 'pg'
-# Use Puma as the app server
-gem 'puma'
-# Use SCSS for stylesheets
-gem 'sass-rails'
 
-# Use jquery as the JavaScript library
-gem 'jquery-rails'
-# Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
-gem 'turbolinks'
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder'
-# Use Redis adapter to run Action Cable in production
-# gem 'redis', '~> 3.0'
-# Use ActiveModel has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
+gem 'jquery-rails'
+gem 'pg'
+gem 'puma'
+gem 'sass-rails'
+gem 'turbolinks'
+gem 'webpacker'
 
 gem 'bootsnap', require: false
 gem 'bootstrap-sass', '~> 3.4.1'
@@ -40,7 +30,7 @@ gem 'nokogiri', '~> 1.10.10'
 gem 'paperclip', '~> 6.1.0'
 gem 'rack', '~> 2.1.4'
 gem 'sprockets', '~> 3.7.2'
-gem "websocket-extensions", '~> 0.1.5'
+gem 'websocket-extensions', '~> 0.1.5'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -56,6 +46,3 @@ group :development do
   gem 'spring'
   gem 'spring-watcher-listen', '~> 2.0.0'
 end
-
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-# gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
