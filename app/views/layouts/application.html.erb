@@ -11,6 +11,19 @@
   </head>
 
   <body>
+    <div>
+      <% if current_user %>
+        <%= button_to('Logout', logout_path, method: :post) %>
+      <% else %>
+        <%= link_to('Login', login_path) %>
+      <% end %>
+    </div>
+
+    <div>
+      <p id="notice"><%= flash[:notice] %></p>
+      <p id="alert"><%= flash[:alert] %></p>
+    </div>
+
     <%= yield %>
   </body>
 </html>
