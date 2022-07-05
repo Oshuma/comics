@@ -1,0 +1,44 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        // {
+        //     "label": "Tests",
+        //     "type": "shell",
+        //     "group": {
+        //         "kind": "test",
+        //         "isDefault": true
+        //     },
+        //     "presentation": {
+        //         "reveal": "always",
+        //         "focus": true,
+        //         "panel": "shared",
+        //         "clear": true
+        //     },
+        //     "options": {
+        //         "env": {
+        //             "RAILS_ENV": "test"
+        //         }
+        //     },
+        //     "command": "${workspaceRoot}/bin/rails",
+        //     "args": [
+        //         "test"
+        //     ]
+        // },
+
+        {
+            "label": "DB: Migrate",
+            "type": "shell",
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "clear": true
+            },
+            "command": "${workspaceRoot}/bin/rails",
+            "args": [ "db:migrate" ],
+            "problemMatcher": []
+        }
+    ]
+}
