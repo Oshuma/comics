@@ -3,29 +3,29 @@
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
-        // {
-        //     "label": "Tests",
-        //     "type": "shell",
-        //     "group": {
-        //         "kind": "test",
-        //         "isDefault": true
-        //     },
-        //     "presentation": {
-        //         "reveal": "always",
-        //         "focus": true,
-        //         "panel": "shared",
-        //         "clear": true
-        //     },
-        //     "options": {
-        //         "env": {
-        //             "RAILS_ENV": "test"
-        //         }
-        //     },
-        //     "command": "${workspaceRoot}/bin/rails",
-        //     "args": [
-        //         "test"
-        //     ]
-        // },
+        {
+            "label": "Tests",
+            "type": "shell",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "clear": true
+            },
+            "options": {
+                "env": {
+                    "RAILS_ENV": "test"
+                }
+            },
+            "command": "${workspaceRoot}/bin/rails",
+            "args": [
+                "test"
+            ]
+        },
 
         {
             "label": "DB: Migrate",
