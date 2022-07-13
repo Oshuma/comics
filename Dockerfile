@@ -35,3 +35,7 @@ ADD Gemfile.lock /app/Gemfile.lock
 RUN bundle install
 
 ADD . /app
+
+EXPOSE 3000/tcp
+
+CMD ["/app/docker-entrypoint.sh"]
