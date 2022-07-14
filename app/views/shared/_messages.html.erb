@@ -1,0 +1,17 @@
+<% flash.each do |name, message| -%>
+  <%
+    alert_class = case name.to_sym
+                  when :alert
+                    'alert-danger'
+                  when :notice
+                    'alert-success'
+                  else
+                    'alert-info'
+                  end
+  %>
+  <%# TODO: Fix duplicate dismiss button. %>
+  <%= content_tag(:div, class: "app-message alert alert-dismissible #{alert_class}", role: 'alert') do %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"><span>&times;</span></button>
+    <%= message %>
+  <% end %>
+<% end -%>
