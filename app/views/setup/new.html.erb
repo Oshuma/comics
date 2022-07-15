@@ -6,7 +6,7 @@
       <div class="card-body">
         <p class="card-text">Create an initial admin user. This user can upload and manage comics like any normal user.</p>
 
-        <%= form_for(@user, url: setup_path) do |f| %>
+        <%= form_with(model: @user, url: setup_path) do |f| %>
           <div class="mb-3">
             <%= f.label :email, class: 'form-label' %>
             <%= f.email_field :email, placeholder: 'user@example.com', class: 'form-control' %>

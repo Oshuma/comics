@@ -1,0 +1,37 @@
+<%= render 'nav' %>
+
+<div class="row mt-3">
+  <% if @groups.present? %>
+    <div class="col-4">
+      <div class="input-group">
+        <select class="form-select" id="select_group">
+          <% if params[:group_name].present? %>
+            <option value="">Group...</option>
+            <option value="<%= params[:group_name] %>" selected><%= params[:group_name] %></option>
+          <% else %>
+            <option value="" selected>Group...</option>
+          <% end %>
+          <%= options_from_collection_for_select(@groups, :id, :name, params[:group_id]) %>
+        </select>
+
+        <%= link_to('#add-group', class: 'btn btn-primary', data: { bs_toggle: 'modal', bs_target: '#new-group-modal' }) do %>
+          <i class="bi bi-folder-plus"></i>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <div class="col-md-auto">
+      <div class="card">
+        <div class="card-header">No Groups</div>
+
+        <div class="card-body">
+          <%= link_to('#add-group', class: 'btn btn-lg btn-outline-success', data: { bs_toggle: 'modal', bs_target: '#new-group-modal' }) do %>
+            <i class="bi bi-folder-plus"></i> Create One!
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%= render 'new_group_modal' %>

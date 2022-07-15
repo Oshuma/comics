@@ -1,0 +1,31 @@
+<% content_for(:navbar) do %>
+  <div class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button">
+      <i class="bi bi-gear"></i> Manage
+    </a>
+
+    <ul class="dropdown-menu">
+      <li>
+        <%= link_to(new_comic_path, class: 'dropdown-item') do %>
+          <i class="bi bi-cloud-arrow-up"></i> Upload Comics
+        <% end %>
+      </li>
+
+      <li class="dropdown-divider"></li>
+
+      <li>
+        <%= link_to(groups_path(show_empty: true), class: 'dropdown-item') do %>
+          <i class="bi bi-toggle-off"></i> <span>Show Empty Groups</span>
+        <% end %>
+      </li>
+
+      <li class="dropdown-divider"></li>
+
+      <li>
+        <%= link_to(delete_read_comics_path, class: 'dropdown-item', data: { turbo_method: :delete, turbo_confirm: 'Remove all read comics?' }) do %>
+          <i class="bi bi-eye-slash"></i> Remove Read Comics
+        <% end %>
+      </li>
+    </ul>
+  </div>
+<% end %>

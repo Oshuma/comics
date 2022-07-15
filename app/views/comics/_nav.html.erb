@@ -1,0 +1,7 @@
+<% content_for(:navbar) do %>
+  <div class="nav-item">
+    <%= link_to('#add-group', class: 'nav-link', data: { bs_toggle: 'modal', bs_target: '#new-group-modal' }) do %>
+      <i class="bi bi-folder-plus"></i> New Group
+    <% end %>
+  </div>
+<% end %>
