@@ -11,25 +11,9 @@
   </head>
 
   <body>
-
-  <!--
-    <div>
-      <% if current_user %>
-        <%= button_to('Logout', logout_path, method: :post) %>
-      <% else %>
-        <%= link_to('Login', login_path) %>
-      <% end %>
-    </div>
-
-    <div>
-      <p id="notice"><%= flash[:notice] %></p>
-      <p id="alert"><%= flash[:alert] %></p>
-    </div>
-  -->
-
     <%= render 'shared/messages' %>
 
-    <% if current_user %>
+    <% if logged_in? %>
       <%= render 'shared/navbar' %>
     <% elsif current_page?(setup_path) %>
       <%= render 'shared/setup_navbar' %>

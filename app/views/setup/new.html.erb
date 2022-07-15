@@ -1,0 +1,32 @@
+<div class="row mt-3">
+  <div class="col-3">
+    <div class="card">
+      <div class="card-header">Create Admin User</div>
+
+      <div class="card-body">
+        <p class="card-text">Create an initial admin user. This user can upload and manage comics like any normal user.</p>
+
+        <%= form_for(@user, url: setup_path) do |f| %>
+          <div class="mb-3">
+            <%= f.label :email, class: 'form-label' %>
+            <%= f.email_field :email, placeholder: 'user@example.com', class: 'form-control' %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :password, class: 'form-label' %>
+            <%= f.password_field :password, placeholder: 'Password', class: 'form-control' %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :password_confirmation, 'Confirm Password', class: 'form-label' %>
+            <%= f.password_field :password_confirmation, placeholder: 'Confirm Password', class: 'form-control' %>
+          </div>
+
+          <div>
+            <%= f.submit 'Create', class: 'btn btn-primary' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

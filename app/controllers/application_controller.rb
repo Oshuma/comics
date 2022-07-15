@@ -4,12 +4,12 @@ class ApplicationController < ActionController::Base
   private
 
   def not_authenticated
-    redirect_to(login_path, alert: 'Login required.')
+    redirect_to login_path
   end
 
   def check_user_setup
-    # if User.count.zero? && (request.full_path != setup_path)
-    #   redirect_to setup_path
-    # end
+    if User.count.zero? && (request.fullpath != setup_path)
+      redirect_to setup_path
+    end
   end
 end
