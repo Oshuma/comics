@@ -8,10 +8,17 @@
                   else
                     'alert-info'
                   end
+
+    css_class = %Q[
+      app-message
+      alert alert-dismissible #{alert_class}
+      position-fixed top-0 start-50
+      w-50
+    ]
   %>
-  <%# TODO: Fix duplicate dismiss button. %>
-  <%= content_tag(:div, class: "app-message alert alert-dismissible #{alert_class}", role: 'alert') do %>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"><span>&times;</span></button>
+
+  <%= content_tag(:div, class: css_class, role: 'alert') do %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     <%= message %>
   <% end %>
 <% end -%>
