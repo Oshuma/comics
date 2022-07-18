@@ -2,11 +2,11 @@
 
 <% if @groups.present? %>
   <% @groups.each_slice(4) do |row| %>
-    <div class="row">
+    <div class="row mt-3">
       <% row.each do |group| %>
         <%# TODO: Add these partials. %>
         <% if group.has_comics? %>
-          <%#= render 'group', group: group %>
+          <%= render group %>
         <% else %>
           <%#= render 'empty_group', group: group %>
         <% end %>

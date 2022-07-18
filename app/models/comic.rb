@@ -5,24 +5,26 @@ class Comic < ApplicationRecord
   belongs_to :group
   has_many :pages, -> { order(number: :asc) }, dependent: :destroy, autosave: true
 
-  after_create_commit :create_pages_from_archive
+  after_create_commit do
+    CreatePagesJob.perform_later(self)
+  end
 
-  # def cover_image_thumb
-  #   # @cover_image_thumb ||= pages.first.try(:image)
-  # end
+  def cover_image_thumb
+    @cover_image_thumb ||= pages.first.try(:image)
+  end
 
   # def finished!
   #   # pages.update_all(read: true) ? record_history! : false
   # end
 
-  # def read?
-  #   # pages.all? { |page| page.read? }
-  # end
+  def read?
+    pages.all? { |page| page.read? }
+  end
 
-  # # Returns true if there is at least one read page.
-  # def reading?
-  #   # pages.any? { |page| page.read? }
-  # end
+  # Returns true if there is at least one read page.
+  def reading?
+    pages.any? { |page| page.read? }
+  end
 
   # def record_history!
   #   # user.histories.find_or_create_by!(group_name: group.name, comic_name: filename)
@@ -37,9 +39,8 @@ class Comic < ApplicationRecord
   #   # File.basename(filename, File.extname(filename))
   # end
 
-  private
-
-  def create_pages_from_archive
+  # TODO: Maybe add a bool `processing` attr.
+  def create_pages_from_archive!
     case File.extname(archive.filename.to_s).downcase
     when '.cbr'
       create_from_cbr
@@ -49,6 +50,8 @@ class Comic < ApplicationRecord
       raise StandardError.new("Unknown file extension: #{archive.filename}")
     end
   end
+
+  private
 
   def create_from_cbr
     raise StandardError.new("unrar not found") if `which unrar`.chomp.empty?

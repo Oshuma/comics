@@ -1,10 +1,11 @@
 class Group < ApplicationRecord
   belongs_to :user
+  has_many :comics, dependent: :destroy
 
   validates :name, presence: true
 
   def cover_image_thumb
-    # @cover_image_thumb ||= comics.first.try(:pages).try(:first).try(:image)
+    @cover_image_thumb ||= comics.first.try(:cover_image_thumb)
   end
 
   def delete_comics!
@@ -20,7 +21,7 @@ class Group < ApplicationRecord
   end
 
   def has_comics?
-    # comics.present?
+    comics.present?
   end
 
   # Returns the Comic after `current_comic` or `self` if last Comic.
@@ -35,10 +36,10 @@ class Group < ApplicationRecord
   end
 
   def read?
-    # comics.all? { |comic| comic.read? }
+    comics.all? { |comic| comic.read? }
   end
 
   def reading?
-    # comics.any? { |comic| comic.reading? }
+    comics.any? { |comic| comic.reading? }
   end
 end

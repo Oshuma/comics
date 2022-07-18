@@ -15,6 +15,21 @@ class GroupsController < ApplicationController
     end
   end
 
+  def update
+    @group = current_user.groups.find(params[:id])
+    if @group.update(group_params)
+      redirect_to groups_path, notice: 'Group saved.'
+    else
+      redirect_to groups_path, alert: 'There was a problem saving that group.'
+    end
+  end
+
+  def destroy
+    @group = current_user.groups.find(params[:id])
+    @group.destroy
+    redirect_to groups_path, notice: 'Group deleted.'
+  end
+
   private
 
   def group_params
