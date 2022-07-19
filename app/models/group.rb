@@ -42,4 +42,8 @@ class Group < ApplicationRecord
   def reading?
     comics.any? { |comic| comic.reading? }
   end
+
+  def processing?
+    comics.any? { |comic| comic.processing? }
+  end
 end

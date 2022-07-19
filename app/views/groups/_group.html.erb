@@ -4,6 +4,10 @@
       <%= group.name %>
 
       <div class="float-end">
+        <% if group.processing? %>
+          <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+        <% end %>
+
         <% if group.read? %>
           <i class="bi bi-check-lg text-success"></i>
         <% elsif group.reading? %>

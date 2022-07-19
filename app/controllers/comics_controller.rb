@@ -9,7 +9,7 @@ class ComicsController < ApplicationController
   def create
     @comic = current_user.comics.build(comic_params)
     if @comic.save
-      redirect_to new_comic_path, notice: 'Comic uploaded!'
+      redirect_to new_comic_path, notice: 'Comic uploaded and is now processing!'
     else
       redirect_to new_comic_path, alert: 'There was an issue uploading that comic.'
     end

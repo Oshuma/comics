@@ -39,15 +39,20 @@ class Comic < ApplicationRecord
   #   # File.basename(filename, File.extname(filename))
   # end
 
-  # TODO: Maybe add a bool `processing` attr.
   def create_pages_from_archive!
-    case File.extname(archive.filename.to_s).downcase
-    when '.cbr'
-      create_from_cbr
-    when '.cbz'
-      create_from_cbz
-    else
-      raise StandardError.new("Unknown file extension: #{archive.filename}")
+    update(processing: true)
+
+    begin
+      case File.extname(archive.filename.to_s).downcase
+      when '.cbr'
+        create_from_cbr
+      when '.cbz'
+        create_from_cbz
+      else
+        raise StandardError.new("Unknown file extension: #{archive.filename}")
+      end
+    ensure
+      update(processing: false)
     end
   end
 
