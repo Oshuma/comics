@@ -15,6 +15,12 @@ class ComicsController < ApplicationController
     end
   end
 
+  def destroy
+    @comic = current_user.comics.find(params[:id])
+    @comic.destroy
+    redirect_to group_path(@comic.group), status: :see_other, notice: 'Comic deleted.'
+  end
+
   private
 
   def comic_params
