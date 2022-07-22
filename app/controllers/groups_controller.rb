@@ -5,6 +5,12 @@ class GroupsController < ApplicationController
     @groups = current_user.groups.order(name: :asc)
   end
 
+  def show
+    @group = current_user.groups.find(params[:id])
+    @groups = current_user.groups.order(name: :asc)
+    @comics = @group.comics
+  end
+
   def create
     @group = current_user.groups.build(group_params)
 

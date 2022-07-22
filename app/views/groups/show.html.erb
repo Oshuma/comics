@@ -1,0 +1,25 @@
+<% if @comics.present? %>
+  <% @comics.each_slice(4) do |row| %>
+    <div class="row mt-3">
+      <% row.each do |comic| %>
+        <%= render comic %>
+      <% end %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="well well-lg text-center">
+        <h1 class="text-muted">No Comics</h1>
+
+        <p>
+          <%= link_to(new_comic_path(group_id: @group.id), class: 'btn btn-default btn-lg') do %>
+            <i class="fa fa-cloud-upload"></i> Upload Some!
+          <% end %>
+        </p>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%= render 'modal', group: @group %>

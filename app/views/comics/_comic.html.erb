@@ -1,0 +1,47 @@
+<div class="col-sm-3 col-md-2">
+  <div class="card border-secondary">
+    <h6 class="card-header text-truncate">
+      <%= comic.pretty_filename %>
+    </h6>
+
+    <%= link_to(read_comic_path(comic)) do %>
+      <%= image_tag(comic.cover_image_thumb, class: 'card-img-top') %>
+    <% end %>
+
+    <div class="card-footer">
+      <span class="dropdown">
+        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+          <% if comic.processing? %>
+            <span class="spinner-border spinner-border-sm text-info" role="status"></span>
+          <% else %>
+            <i class="bi bi-gear"></i>
+          <% end %>
+        </button>
+
+        <ul class="dropdown-menu">
+          <li>
+            <%= link_to(move_comic_path(comic), class: 'dropdown-item') do %>
+              <i class="bi bi-file-earmark-arrow-up"></i> Move to Group
+            <% end %>
+          </li>
+
+          <li><hr class="dropdown-divider"></li>
+
+          <li>
+            <%= link_to(comic, class: 'dropdown-item', data: { turbo_method: :delete, turbo_confirm: 'Delete this comic?' }) do %>
+              <i class="bi bi-trash"></i> Delete
+            <% end %>
+          </li>
+        </ul>
+      </span>
+
+      <span class="float-end">
+        <% if comic.read? %>
+          <i class="bi bi-check-lg fs-4 text-success"></i>
+        <% elsif comic.reading? %>
+          <i class="bi bi-eye fs-4"></i>
+        <% end %>
+      </span>
+    </div>
+  </div>
+</div>

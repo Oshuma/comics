@@ -10,7 +10,7 @@ class Comic < ApplicationRecord
   end
 
   def cover_image_thumb
-    @cover_image_thumb ||= pages.first.try(:image)
+    @cover_image_thumb ||= pages.first.try(:image).try(:variant, :thumb)
   end
 
   # def finished!
@@ -35,9 +35,9 @@ class Comic < ApplicationRecord
   #   # save
   # end
 
-  # def pretty_filename
-  #   # File.basename(filename, File.extname(filename))
-  # end
+  def pretty_filename
+    archive.filename.base
+  end
 
   def create_pages_from_archive!
     update(processing: true)

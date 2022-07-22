@@ -2,28 +2,20 @@
   <div class="card border-secondary">
     <h6 class="card-header">
       <%= group.name %>
-
-      <div class="float-end">
-        <% if group.processing? %>
-          <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-        <% end %>
-
-        <% if group.read? %>
-          <i class="bi bi-check-lg text-success"></i>
-        <% elsif group.reading? %>
-          <i class="bi bi-eye"></i>
-        <% end %>
-      </div>
     </h6>
 
     <%= link_to(group) do %>
-      <%= image_tag group.cover_image_thumb, class: 'card-img-top' %>
+      <%= image_tag(group.cover_image_thumb, class: 'card-img-top') %>
     <% end %>
 
     <div class="card-footer">
-      <div class="dropdown">
+      <span class="dropdown">
         <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-          <i class="bi bi-gear"></i>
+          <% if group.processing? %>
+            <span class="spinner-border spinner-border-sm text-info" role="status"></span>
+          <% else %>
+            <i class="bi bi-gear"></i>
+          <% end %>
         </button>
 
         <ul class="dropdown-menu">
@@ -63,7 +55,15 @@
             <% end %>
           </li>
         </ul>
-      </div>
+      </span>
+
+      <span class="float-end">
+        <% if group.read? %>
+          <i class="bi bi-check-lg fs-4 text-success"></i>
+        <% elsif group.reading? %>
+          <i class="bi bi-eye fs-4"></i>
+        <% end %>
+      </span>
     </div>
   </div>
 </div>

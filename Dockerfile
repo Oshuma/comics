@@ -18,6 +18,7 @@ RUN apk add --update --no-cache \
       tzdata \
       unzip \
       wget \
+      vips \
     && rm -rf /var/cache/apk/*
 
 # Grab and compile unrar source from here: https://www.rarlab.com/rar_add.htm
