@@ -1,7 +1,7 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+<nav class="navbar navbar-expand navbar-light bg-light fixed-top">
   <div class="container-fluid">
-    <div class="d-flex" id="page-nav">
-      <div class="navbar-nav flex-fill">
+    <div class="collapse navbar-collapse" id="viewer-nav">
+      <div class="navbar-nav me-auto">
         <div class="nav-item">
           <% if @page.previous_page.present? %>
             <%= link_to(previous_page_comic_page_path(@comic, @page), id: 'previous_page', class: 'nav-link', data: { turbo_method: :put }) do %>
@@ -21,10 +21,10 @@
         </div>
 
         <div class="nav-item"><%= link_to(@comic.group.name, @comic.group, class: 'nav-link') %></div>
-        <div class="nav-item"><%= link_to(@comic.pretty_filename, @comic, class: 'nav-link') %></div>
+        <div class="nav-item d-none d-sm-block text-truncate"><%= link_to(@comic.pretty_filename, @comic, class: 'nav-link') %></div>
       </div>
 
-      <div class="navbar-text me-5">
+      <div class="navbar-text me-3">
         <%= @page.number %> / <%= @comic.pages.count %>
       </div>
 
