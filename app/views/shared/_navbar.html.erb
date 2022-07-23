@@ -8,13 +8,13 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse d-flex" id="app-nav">
+    <div class="collapse navbar-collapse" id="app-nav">
       <% if content_for?(:navbar) %>
-        <div class="navbar-nav flex-fill">
+        <div class="navbar-nav me-auto">
           <%= content_for(:navbar) %>
         </div>
       <% else %>
-        <div class="flex-fill"></div>
+        <div class="me-auto"></div>
       <% end %>
 
       <ul class="navbar-nav">
