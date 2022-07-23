@@ -1,25 +1,39 @@
-<% if @comics.present? %>
-  <% @comics.each_slice(4) do |row| %>
-    <div class="row mt-3">
-      <% row.each do |comic| %>
-        <%= render comic %>
-      <% end %>
-    </div>
-  <% end %>
-<% else %>
-  <div class="row">
-    <div class="col-md-6 col-md-offset-3">
-      <div class="well well-lg text-center">
-        <h1 class="text-muted">No Comics</h1>
+<% content_for(:navbar) do %>
+  <div class="nav-item dropdown d-md-none d-lg-block">
+    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button">
+      <i class="bi bi-gear"></i>
+    </a>
 
-        <p>
-          <%= link_to(new_comic_path(group_id: @group.id), class: 'btn btn-default btn-lg') do %>
-            <i class="fa fa-cloud-upload"></i> Upload Some!
+    <ul class="dropdown-menu">
+      <li>
+        <%= link_to(new_comic_path(group_id: @group.id), class: 'dropdown-item') do %>
+          <i class="bi bi-cloud-arrow-up"></i> Upload Comics
+        <% end %>
+      </li>
+    </ul>
+  </div>
+
+  <span class="nav-item navbar-text">
+    <%= @group.name %>
+  </span>
+<% end %>
+
+<div class="row mt-3">
+  <% if @comics.present? %>
+    <%= render @comics %>
+  <% else %>
+    <div class="col-md-auto">
+      <div class="card">
+        <div class="card-header">No Comics</div>
+
+        <div class="card-body">
+          <%= link_to(new_comic_path(group_id: @group.id), class: 'btn btn-lg btn-outline-success') do %>
+            <i class="bi bi-cloud-arrow-up"></i> Upload Some!
           <% end %>
-        </p>
+        </div>
       </div>
     </div>
-  </div>
-<% end %>
+  <% end %>
+</div>
 
 <%= render 'modal', group: @group %>

@@ -1,20 +1,16 @@
 <%= render 'nav' %>
 
-<% if @groups.present? %>
-  <% @groups.each_slice(4) do |row| %>
-    <div class="row mt-3">
-      <% row.each do |group| %>
-        <% if group.has_comics? %>
-          <%= render group %>
-        <% else %>
-          <%# TODO: Add this partial. %>
-          <%#= render 'empty_group', group: group %>
-        <% end %>
+<div class="row mt-3">
+  <% if @groups.present? %>
+    <% @groups.each do |group| %>
+      <% if group.has_comics? %>
+        <%= render group %>
+      <% else %>
+        <%# TODO: Add this partial. %>
+        <%#= render 'empty_group', group: group %>
       <% end %>
-    </div>
-  <% end %>
-<% else %>
-  <div class="row mt-3">
+    <% end %>
+  <% else %>
     <div class="col-md-auto">
       <div class="card">
         <div class="card-header">No Comics</div>
@@ -26,5 +22,5 @@
         </div>
       </div>
     </div>
-  </div>
-<% end %>
+  <% end %>
+</div>
