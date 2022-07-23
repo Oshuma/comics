@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Comics</title>
+    <title><%= @comic.pretty_filename %></title>
 
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
@@ -12,16 +12,7 @@
   </head>
 
   <body>
-    <%= render 'shared/messages' %>
-
-    <% if logged_in? %>
-      <%= render 'shared/navbar' %>
-    <% elsif current_page?(setup_path) %>
-      <%= render 'shared/setup_navbar' %>
-    <% end %>
-
-    <div class="container-fluid">
-      <%= yield %>
-    </div>
+    <%= render 'shared/pages_navbar' %>
+    <%= yield %>
   </body>
 </html>

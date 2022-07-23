@@ -18,7 +18,17 @@ class ComicsController < ApplicationController
   def destroy
     @comic = current_user.comics.find(params[:id])
     @comic.destroy
-    redirect_to group_path(@comic.group), status: :see_other, notice: 'Comic deleted.'
+    redirect_get group_path(@comic.group), notice: 'Comic deleted.'
+  end
+
+  def read
+    @comic = current_user.comics.find(params[:id])
+
+    if @first_unread_page = @comic.pages.first_unread
+      redirect_to comic_page_path(@comic, @first_unread_page)
+    else
+      redirect_to comic_path(@comic)
+    end
   end
 
   private

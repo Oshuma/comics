@@ -5,9 +5,7 @@ class Page < ApplicationRecord
 
   belongs_to :comic
 
-  # def self.first_unread
-  #   where(read: false).first
-  # end
+  scope :first_unread, -> { where(read: false).first }
 
   def previous_page
     comic.pages.where(number: (number - 1)).first

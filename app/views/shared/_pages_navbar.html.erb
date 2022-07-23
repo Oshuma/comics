@@ -1,0 +1,46 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+  <div class="container-fluid">
+    <div class="d-flex" id="page-nav">
+      <div class="navbar-nav flex-fill">
+        <div class="nav-item">
+          <% if @page.previous_page.present? %>
+            <%= link_to(previous_page_comic_page_path(@comic, @page), id: 'previous_page', class: 'nav-link', data: { turbo_method: :put }) do %>
+              <i class="bi bi-chevron-left"></i>
+            <% end %>
+          <% else %>
+            <%= link_to(@comic.group, class: 'nav-link') do %>
+              <i class="bi bi-chevron-left"></i>
+            <% end %>
+          <% end %>
+        </div>
+
+        <div class="nav-item">
+          <%= link_to(root_path, class: 'nav-link') do %>
+            <i class="bi bi-journals"></i>
+          <% end %>
+        </div>
+
+        <div class="nav-item"><%= link_to(@comic.group.name, @comic.group, class: 'nav-link') %></div>
+        <div class="nav-item"><%= link_to(@comic.pretty_filename, @comic, class: 'nav-link') %></div>
+      </div>
+
+      <div class="navbar-text me-5">
+        <%= @page.number %> / <%= @comic.pages.count %>
+      </div>
+
+      <div class="navbar-nav">
+        <div class="nav-item">
+          <%= link_to(finish_comic_path(@comic), class: 'nav-link', data: { turbo_method: :put, turbo_confirm: 'Finished reading?' }) do %>
+            <i class="bi bi-chevron-bar-right"></i>
+          <% end %>
+        </div>
+
+        <div class="nav-item">
+          <%= link_to(next_page_comic_page_path(@comic, @page), id: 'next_page', class: 'nav-link', data: { turbo_method: :put }) do %>
+            <i class="bi bi-chevron-right"></i>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
