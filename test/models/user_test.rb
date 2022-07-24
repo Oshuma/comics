@@ -1,7 +1,7 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
-  # test "the truth" do
-  #   assert true
-  # end
+  test "has comics association" do
+    assert users(:one).respond_to?(:comics)
+  end
 end

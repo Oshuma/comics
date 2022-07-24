@@ -13,9 +13,9 @@ class Comic < ApplicationRecord
     @cover_image_thumb ||= pages.first.try(:image).try(:variant, :thumb)
   end
 
-  # def finished!
-  #   # pages.update_all(read: true) ? record_history! : false
-  # end
+  def finished!
+    pages.update_all(read: true) ? record_history! : false
+  end
 
   def read?
     pages.all? { |page| page.read? }
@@ -26,9 +26,10 @@ class Comic < ApplicationRecord
     pages.any? { |page| page.read? }
   end
 
-  # def record_history!
-  #   # user.histories.find_or_create_by!(group_name: group.name, comic_name: filename)
-  # end
+  # TODO: Implement.
+  def record_history!
+    # user.histories.find_or_create_by!(group_name: group.name, comic_name: filename)
+  end
 
   # def move_to(group)
   #   # self.group = group

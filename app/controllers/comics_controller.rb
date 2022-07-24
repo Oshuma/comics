@@ -31,6 +31,18 @@ class ComicsController < ApplicationController
     end
   end
 
+  def finish
+    @comic = current_user.comics.find(params[:id])
+    @comic.finished!
+
+    redirect_to group_path(@comic.group)
+  end
+
+  def delete_read
+    DeleteReadComicsJob.perform_later(current_user)
+    redirect_to root_path
+  end
+
   private
 
   def comic_params

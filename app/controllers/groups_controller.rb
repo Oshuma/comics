@@ -36,6 +36,18 @@ class GroupsController < ApplicationController
     redirect_to groups_path, notice: 'Group deleted.'
   end
 
+  def delete_read
+    @group = current_user.groups.find(params[:id])
+    DeleteReadComicsJob.perform_later(@group)
+    redirect_to root_path
+  end
+
+  def delete_comics
+    @group = current_user.groups.find(params[:id])
+    @group.delete_comics!
+    redirect_to root_path
+  end
+
   private
 
   def group_params

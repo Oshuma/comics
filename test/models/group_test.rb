@@ -1,7 +1,7 @@
 require "test_helper"
 
 class GroupTest < ActiveSupport::TestCase
-  # test "the truth" do
-  #   assert true
-  # end
+  test "has comics association" do
+    assert groups(:one).respond_to?(:comics)
+  end
 end

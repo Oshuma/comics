@@ -9,11 +9,7 @@ class Group < ApplicationRecord
   end
 
   def delete_comics!
-    # comics.destroy_all
-  end
-
-  def delete_read_comics!
-    # comics.each { |comic| comic.destroy if comic.read? }
+    comics.destroy_all
   end
 
   def disk_size
