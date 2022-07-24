@@ -1,7 +1,7 @@
 require "test_helper"
 
 class PageTest < ActiveSupport::TestCase
-  # test "the truth" do
-  #   assert true
-  # end
+  test ".first_unread" do
+    assert Page.respond_to?(:first_unread)
+  end
 end

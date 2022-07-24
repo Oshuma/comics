@@ -15,6 +15,10 @@ class ComicsController < ApplicationController
     end
   end
 
+  def show
+    @comic = current_user.comics.find(params[:id])
+  end
+
   def destroy
     @comic = current_user.comics.find(params[:id])
     @comic.destroy
