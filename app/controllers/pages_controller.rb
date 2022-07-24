@@ -10,10 +10,10 @@ class PagesController < ApplicationController
     @next_page = @page.next!
 
     if @next_page
-      redirect_get comic_page_path(@comic, @next_page)
+      redirect_to comic_page_path(@comic, @next_page)
     else
       # @comic.record_history!
-      redirect_get next_comic
+      redirect_to next_comic
     end
   end
 
@@ -21,9 +21,9 @@ class PagesController < ApplicationController
     @previous_page = @page.previous!
 
     if @previous_page
-      redirect_get comic_page_path(@comic, @previous_page)
+      redirect_to comic_page_path(@comic, @previous_page)
     else
-      redirect_get @comic.group
+      redirect_to @comic.group
     end
   end
 

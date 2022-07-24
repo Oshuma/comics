@@ -1,11 +1,10 @@
 class ApplicationController < ActionController::Base
   before_action :check_user_setup
 
-  protected
-
-  # HACK: Use this on any non-GET requests instead of `redirect_to` to force a GET.
-  def redirect_get(options = {}, response_options = {})
-    redirect_to(options, response_options.merge(status: :see_other))
+  # HACK: Override this for any non-GET/POST requests to force a GET redirect.
+  def redirect_to(options = {}, response_options = {})
+    response_options.merge!(status: :see_other) unless ["GET", "POST"].include?(request.request_method)
+    super(options, response_options)
   end
 
   private

@@ -33,7 +33,7 @@ class GroupsController < ApplicationController
   def destroy
     @group = current_user.groups.find(params[:id])
     @group.destroy
-    redirect_get groups_path, notice: 'Group deleted.'
+    redirect_to groups_path, notice: 'Group deleted.'
   end
 
   private
