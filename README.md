@@ -31,23 +31,3 @@ $ ./bin/web.sh rake routes
 
 After the containers are running and the app is setup, hit [http://localhost:3000](http://localhost:3000) in your browser and you should be redirected to the initial User setup.
 This will setup an admin account, which you can later use to add more users, etc.
-
-## Deploy
-
-Any Unix-like server running Ruby 2+ and Postgres 9.5+ should work.
-
-```
-./bin/web.sh cap production deploy DEPLOY_HOST=example.com
-```
-
-Set `DEPLOY_HOST` to anything capistrano's roles understands.  For example:
-
-```
-./bin/web.sh cap production deploy DEPLOY_HOST=foo@example.com:1234
-```
-
-| Requirements | | |
-| ------------ |-|-|
-| imagemagick | `apt-get install imagemagick` | |
-| unrar | `apt-get install unrar` | (debian note: this must be the 'non-free' package) |
-| unzip | `apt-get install unzip` | |
