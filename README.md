@@ -1,24 +1,53 @@
-# README
+# Comics
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Web based, tablet-first comic reader.
 
-Things you may want to cover:
+![Groups](public/screenshots/001.png)
+![Group](public/screenshots/002.png)
+![Page](public/screenshots/003.png)
 
-* Ruby version
+## Development Setup
 
-* System dependencies
+Local development is done with [Docker Compose](https://docs.docker.com/compose/) and uses the [ruby:alpine](https://hub.docker.com/_/ruby) and [postgres:alpine](https://hub.docker.com/_/postgres) repos.
+Make sure you have Docker Compose installed, then run:
 
-* Configuration
+```
+$ docker-compose up
+```
 
-* Database creation
+Once both containers are running (`web` and `db`), run the setup helper:
 
-* Database initialization
+```
+$ docker-compose run --rm web ./bin/setup
+```
 
-* How to run the test suite
+There's a wrapper script `web.sh` that can be used to run commands in the `web` container:
 
-* Services (job queues, cache servers, search engines, etc.)
+```
+$ ./bin/web.sh rake routes
+```
 
-* Deployment instructions
+## Use
 
-* ...
+After the containers are running and the app is setup, hit [http://localhost:3000](http://localhost:3000) in your browser and you should be redirected to the initial User setup.
+This will setup an admin account, which you can later use to add more users, etc.
+
+## Deploy
+
+Any Unix-like server running Ruby 2+ and Postgres 9.5+ should work.
+
+```
+./bin/web.sh cap production deploy DEPLOY_HOST=example.com
+```
+
+Set `DEPLOY_HOST` to anything capistrano's roles understands.  For example:
+
+```
+./bin/web.sh cap production deploy DEPLOY_HOST=foo@example.com:1234
+```
+
+| Requirements | | |
+| ------------ |-|-|
+| imagemagick | `apt-get install imagemagick` | |
+| unrar | `apt-get install unrar` | (debian note: this must be the 'non-free' package) |
+| unzip | `apt-get install unzip` | |
