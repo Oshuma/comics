@@ -20,8 +20,16 @@
           <% end %>
         </div>
 
-        <div class="nav-item"><%= link_to(@comic.group.name, @comic.group, class: 'nav-link') %></div>
-        <div class="nav-item d-none d-sm-block text-truncate"><%= link_to(@comic.pretty_filename, @comic, class: 'nav-link') %></div>
+        <div class="nav-item">
+          <%= link_to(@comic.group, class: 'nav-link') do %>
+            <%= @comic.group.name %>
+            <i class="bi bi-chevron-compact-right d-none d-sm-inline"></i>
+          <% end %>
+        </div>
+
+        <div class="nav-item d-none d-sm-block text-truncate">
+          <%= link_to(@comic.pretty_filename, @comic, class: 'nav-link') %>
+        </div>
       </div>
 
       <div class="navbar-text me-3">

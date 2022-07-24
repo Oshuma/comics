@@ -20,8 +20,14 @@
 
         <ul class="dropdown-menu">
           <li>
+            <%= link_to(comic, class: 'dropdown-item') do %>
+              <i class="bi bi-images"></i> View Pages
+            <% end %>
+          </li>
+
+          <li>
             <%= link_to(move_comic_path(comic), class: 'dropdown-item') do %>
-              <i class="bi bi-file-earmark-arrow-up"></i> Move to Group
+              <i class="bi bi-folder-symlink"></i> Move to Group
             <% end %>
           </li>
 
