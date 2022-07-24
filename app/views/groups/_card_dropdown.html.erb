@@ -1,0 +1,55 @@
+<span class="dropdown">
+  <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+    <% if group.processing? %>
+      <span class="spinner-border spinner-border-sm text-info" role="status"></span>
+    <% else %>
+      <i class="bi bi-gear"></i>
+    <% end %>
+  </button>
+
+  <ul class="dropdown-menu">
+    <li>
+      <%= link_to(new_comic_path(group_id: group.id), class: 'dropdown-item') do %>
+        <i class="bi bi-cloud-arrow-up"></i> Upload Comics
+      <% end %>
+    </li>
+
+    <li>
+      <%= link_to('#edit-group', class: 'dropdown-item', data: { bs_toggle: 'modal', bs_target: "#edit-#{dom_id(group)}-modal" }) do %>
+        <i class="bi bi-pencil"></i> Edit Group
+      <% end %>
+    </li>
+
+    <% if group.has_comics? %>
+      <li><hr class="dropdown-divider"></li>
+
+      <li>
+        <%= link_to(delete_read_group_path(group), class: 'dropdown-item', data: { turbo_method: :delete, turbo_confirm: 'Remove all read comics?' }) do %>
+          <i class="bi bi-eye-slash"></i> Remove Read Comics
+        <% end %>
+      </li>
+
+      <li>
+        <%= link_to(delete_comics_group_path(group), class: 'dropdown-item', data: { turbo_method: :delete, turbo_confirm: 'Remove all comics in this group?' }) do %>
+          <i class="bi bi-slash-circle"></i> Remove All Comics
+        <% end %>
+      </li>
+    <% end %>
+
+    <li><hr class="dropdown-divider"></li>
+
+    <li>
+      <%= link_to(group, class: 'dropdown-item', data: { turbo_method: :delete, turbo_confirm: 'Delete this group?' }) do %>
+        <i class="bi bi-trash"></i> Delete Group
+      <% end %>
+    </li>
+  </ul>
+</span>
+
+<span class="float-end">
+  <% if group.read? %>
+    <i class="bi bi-check-lg fs-4 text-success"></i>
+  <% elsif group.reading? %>
+    <i class="bi bi-eye fs-4"></i>
+  <% end %>
+</span>

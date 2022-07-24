@@ -6,8 +6,9 @@
       <% if group.has_comics? %>
         <%= render group %>
       <% else %>
-        <%# TODO: Add this partial. %>
-        <%#= render 'empty_group', group: group %>
+        <% if params[:show_empty] == 'true' %>
+          <%= render 'empty_group', group: group %>
+        <% end %>
       <% end %>
     <% end %>
   <% else %>

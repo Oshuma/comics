@@ -14,8 +14,12 @@
       <li class="dropdown-divider"></li>
 
       <li>
-        <%= link_to(groups_path(show_empty: true), class: 'dropdown-item') do %>
-          <i class="bi bi-toggle-off"></i> <span>Show Empty Groups</span>
+        <%= link_to(groups_path(show_empty: params[:show_empty] != 'true'), class: 'dropdown-item') do %>
+          <% if params[:show_empty] == 'true' %>
+            <i class="bi bi-toggle-on"></i> Hide Empty Groups
+          <% else %>
+            <i class="bi bi-toggle-off"></i> Show Empty Groups
+          <% end %>
         <% end %>
       </li>
 

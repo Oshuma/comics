@@ -32,10 +32,12 @@ class Group < ApplicationRecord
   end
 
   def read?
+    return false unless has_comics?
     comics.all? { |comic| comic.read? }
   end
 
   def reading?
+    return false unless has_comics?
     comics.any? { |comic| comic.reading? }
   end
 
