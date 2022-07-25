@@ -18,7 +18,6 @@ Rails.application.routes.draw do
     member do
       get :read
       put :finish
-      put :move
     end
 
     resources :pages do

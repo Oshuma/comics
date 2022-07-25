@@ -19,6 +19,15 @@ class ComicsController < ApplicationController
     @comic = current_user.comics.find(params[:id])
   end
 
+  def update
+    @comic = current_user.comics.find(params[:id])
+    if @comic.update(comic_params)
+      redirect_to @comic.group, notice: 'Comic saved.'
+    else
+      redirect_to @comic.group, alert: 'There was a problem updating that comic.'
+    end
+  end
+
   def destroy
     @comic = current_user.comics.find(params[:id])
     @comic.destroy
@@ -50,6 +59,6 @@ class ComicsController < ApplicationController
   private
 
   def comic_params
-    params.require(:comic).permit(:archive, :group_id)
+    params.require(:comic).permit(:archive, :name, :group_id)
   end
 end
