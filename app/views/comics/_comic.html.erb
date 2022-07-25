@@ -1,7 +1,7 @@
 <div class="col-lg-2 col-md-3">
   <div class="card border-secondary">
     <h6 class="card-header text-truncate">
-      <%= comic.pretty_filename %>
+      <%= comic.name %>
     </h6>
 
     <%= link_to(read_comic_path(comic)) do %>
@@ -20,14 +20,14 @@
 
         <ul class="dropdown-menu">
           <li>
-            <%= link_to(comic, class: 'dropdown-item') do %>
-              <i class="bi bi-images"></i> View Pages
+            <%= link_to('#edit-comic', class: 'dropdown-item', data: { bs_toggle: 'modal', bs_target: "#edit-comic-#{dom_id(comic)}-modal" }) do %>
+              <i class="bi bi-pencil"></i> Edit Comic
             <% end %>
           </li>
 
           <li>
-            <%= link_to(move_comic_path(comic), class: 'dropdown-item') do %>
-              <i class="bi bi-folder-symlink"></i> Move to Group
+            <%= link_to(comic, class: 'dropdown-item') do %>
+              <i class="bi bi-images"></i> View Pages
             <% end %>
           </li>
 
@@ -51,3 +51,5 @@
     </div>
   </div>
 </div>
+
+<%= render 'comics/modal', comic: comic %>

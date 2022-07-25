@@ -1,6 +1,6 @@
 class Group < ApplicationRecord
   belongs_to :user
-  has_many :comics, dependent: :destroy
+  has_many :comics, -> { order(name: :asc) }, dependent: :destroy
 
   validates :name, presence: true
 

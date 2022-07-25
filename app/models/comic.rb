@@ -7,6 +7,7 @@ class Comic < ApplicationRecord
 
   after_create_commit do
     CreatePagesJob.perform_later(self)
+    update(name: pretty_filename)
   end
 
   def cover_image_thumb
