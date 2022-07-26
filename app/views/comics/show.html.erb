@@ -21,6 +21,12 @@
 
         <div class="card-footer text-center fw-bold">
           <%= page.number %>
+
+          <span class="float-end">
+            <% if page.read? %>
+              <i class="bi bi-check-lg fs-4 text-success"></i>
+            <% end %>
+          </span>
         </div>
       </div>
     </div>
