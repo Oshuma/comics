@@ -1,24 +1,16 @@
-<% flash.each do |name, message| -%>
-  <%
-    alert_class = case name.to_sym
-                  when :alert
-                    'alert-danger'
-                  when :notice
-                    'alert-success'
-                  else
-                    'alert-info'
-                  end
+<% unless flash.empty? %>
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <% flash.each do |name, message| %>
+      <div class="toast border-0 <%= flash_color_for(name) %>" role="alert">
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="<%= flash_icon_for(name) %> fs-4 fw-bold me-1"></i>
+            <%= message %>
+          </div>
 
-    css_class = %Q[
-      app-message
-      alert alert-dismissible #{alert_class}
-      position-fixed top-0 start-50
-      w-50
-    ]
-  %>
-
-  <%= content_tag(:div, class: css_class, role: 'alert') do %>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    <%= message %>
-  <% end %>
-<% end -%>
+          <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>
