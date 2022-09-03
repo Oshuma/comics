@@ -80,9 +80,9 @@ class Comic < ApplicationRecord
     end
   end
 
-  # TODO: Move this to a background job.
   def inside_temp_dir(&block)
     temp_dir = File.join(Dir.tmpdir, archive.filename.to_s)
+    FileUtils.remove_entry_secure(temp_dir) if Dir.exist?(temp_dir)
     Dir.mkdir(temp_dir)
 
     Dir.chdir(temp_dir) do
@@ -107,6 +107,6 @@ class Comic < ApplicationRecord
       end
     end
 
-    FileUtils.rm_rf(temp_dir)
+    FileUtils.remove_entry_secure(temp_dir) if Dir.exist?(temp_dir)
   end
 end
