@@ -19,7 +19,8 @@ RUN apk add --update --no-cache \
       unzip \
       wget \
       vips \
-    && rm -rf /var/cache/apk/*
+      yarn \
+      && rm -rf /var/cache/apk/*
 
 # Grab and compile unrar source from here: https://www.rarlab.com/rar_add.htm
 RUN wget -O - https://www.rarlab.com/rar/unrarsrc-6.1.7.tar.gz | tar xz \
@@ -27,15 +28,22 @@ RUN wget -O - https://www.rarlab.com/rar/unrarsrc-6.1.7.tar.gz | tar xz \
       && make && make install \
       && rm -rf unrar/
 
+# make 'docker logs' work
+ENV RAILS_LOG_TO_STDOUT=true
+
 RUN mkdir /app
 WORKDIR /app
 
-ADD Gemfile /app/Gemfile
-ADD Gemfile.lock /app/Gemfile.lock
+ADD . /app
 
+# Bundling takes a long ass time, so keep its own layer to make asset changes faster.
 RUN bundle install
 
-ADD . /app
+ENV RAILS_SERVE_STATIC_FILES=true
+RUN yarn install \
+      && yarn build \
+      && yarn build:css \
+      && bin/rails assets:precompile
 
 EXPOSE 3000/tcp
 

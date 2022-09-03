@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+case "$RAILS_ENV" in
+production)
+	database="comics"
+	storage="comics"
+	;;
+*)
+	database="comics_development"
+	storage="comics_development"
+	;;
+esac
+
+master_key=$(cat config/master.key)
+database_url="postgres://postgres:postgres@postgres:5432/$database"
+
+docker run \
+	-it \
+	--rm \
+	--detach \
+	--name comics \
+	-p 3000:3000 \
+	-e RAILS_ENV=$RAILS_ENV \
+	-e RAILS_MASTER_KEY=$master_key \
+	-e DATABASE_URL=$database_url \
+	-v $storage:/app/storage \
+	comics:latest
+
+docker network connect comics comics
+
+docker exec -it comics sh -c "bin/rails db:create && bin/rails db:migrate"
+
+docker attach comics

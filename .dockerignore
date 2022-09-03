@@ -10,4 +10,11 @@
 /node_modules
 
 # Ignore uploaded files.
-/public/system
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
