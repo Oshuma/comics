@@ -30,4 +30,5 @@ docker network connect comics comics
 
 docker exec -it comics sh -c "bin/rails db:create && bin/rails db:migrate"
 
+docker logs comics # Dump any logs printed before attaching.
 docker attach comics
