@@ -2,33 +2,45 @@
 
 case "$RAILS_ENV" in
 production)
+	container="comics"
 	database="comics"
+	network="comics"
 	storage="comics"
 	;;
 *)
+	container="comics_development"
 	database="comics_development"
+	network="comics_development"
 	storage="comics_development"
 	;;
 esac
 
+db_host="postgres"
+image="comics:latest"
 master_key=$(cat config/master.key)
-database_url="postgres://postgres:postgres@postgres:5432/$database"
 
+database_url="postgres://postgres:postgres@$db_host:5432/$database"
+
+echo "== Starting container"
 docker run \
 	-it \
 	--rm \
 	--detach \
-	--name comics \
+	--name $container \
 	-p 3000:3000 \
 	-e RAILS_ENV=$RAILS_ENV \
-	-e RAILS_MASTER_KEY=$master_key \
 	-e DATABASE_URL=$database_url \
+	-e RAILS_MASTER_KEY=$master_key \
 	-v $storage:/app/storage \
-	comics:latest
+	$image
 
-docker network connect comics comics
+echo "== Setting up network"
+docker network create $network 2>/dev/null
+docker network connect $network $container 2>/dev/null
+docker network connect $network $db_host 2>/dev/null
 
-docker exec -it comics sh -c "bin/rails db:create && bin/rails db:migrate"
+echo "== Running migrations"
+docker exec -it $container sh -c "bin/rails db:create && bin/rails db:migrate"
 
-docker logs comics # Dump any logs printed before attaching.
-docker attach comics
+docker logs $container # Dump any logs printed before attaching.
+docker attach $container
