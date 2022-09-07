@@ -17,19 +17,10 @@ RUN apk add --update --no-cache \
       build-base \
       file \
       imagemagick \
-      nodejs \
       postgresql-dev \
       tzdata \
-      wget \
       vips \
-      yarn \
       && rm -rf /var/cache/apk/*
-
-# Grab and compile unrar source from here: https://www.rarlab.com/rar_add.htm
-RUN wget -O - https://www.rarlab.com/rar/unrarsrc-6.1.7.tar.gz | tar xz \
-      && cd unrar/ \
-      && make && make install \
-      && rm -rf unrar/
 
 COPY --from=gem-cache /usr/local/bundle /usr/local/bundle
 COPY Gemfile Gemfile.lock ./
@@ -49,16 +40,22 @@ LABEL org.label-schema.vcs-ref=$GIT_VERSION \
       org.label-schema.vcs-url="https://github.com/Oshuma/comics"
 
 RUN apk add --update --no-cache \
+      build-base \
       file \
       imagemagick \
       nodejs \
       postgresql-dev \
       tzdata \
       unzip \
-      wget \
       vips \
       yarn \
       && rm -rf /var/cache/apk/*
+
+ADD https://www.rarlab.com/rar/unrarsrc-6.1.7.tar.gz .
+RUN tar xzf unrarsrc-6.1.7.tar.gz \
+      && cd unrar/ \
+      && make && make install \
+      && rm -rf unrar/ unrarsrc-6.1.7.tar.gz
 
 # make 'docker logs' work
 ENV RAILS_LOG_TO_STDOUT=true

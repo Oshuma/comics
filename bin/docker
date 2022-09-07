@@ -15,11 +15,15 @@ production)
 	;;
 esac
 
-db_host="postgres"
-image="comics:latest"
-master_key=$(cat config/master.key)
+latest="comics:latest"
+: "${IMAGE:=$latest}"
 
-database_url="postgres://postgres:postgres@$db_host:5432/$database"
+db_container="postgres"
+db_url="postgres://postgres:postgres@$db_container:5432/$database"
+: "${DATABASE_URL:=$db_url}"
+
+dev_key=$(cat config/master.key)
+: "${RAILS_MASTER_KEY:=$dev_key}"
 
 echo "== Starting container"
 docker run \
@@ -28,19 +32,24 @@ docker run \
 	--detach \
 	--name $container \
 	-p 3000:3000 \
+	-e DATABASE_URL=$DATABASE_URL \
 	-e RAILS_ENV=$RAILS_ENV \
-	-e DATABASE_URL=$database_url \
-	-e RAILS_MASTER_KEY=$master_key \
+	-e RAILS_MASTER_KEY=$RAILS_MASTER_KEY \
 	-v $storage:/app/storage \
-	$image
+	$IMAGE
 
 echo "== Setting up network"
 docker network create $network 2>/dev/null
 docker network connect $network $container 2>/dev/null
-docker network connect $network $db_host 2>/dev/null
+docker network connect $network $db_container 2>/dev/null
 
 echo "== Running migrations"
 docker exec -it $container sh -c "bin/rails db:create && bin/rails db:migrate"
 
+echo "== Attaching to container"
 docker logs $container # Dump any logs printed before attaching.
 docker attach $container
+
+echo "== Cleaning up"
+docker network disconnect $network $db_container 2>/dev/null
+docker network rm $network 2>/dev/null
