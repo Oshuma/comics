@@ -25,6 +25,7 @@ db_url="postgres://postgres:postgres@$db_container:5432/$database"
 dev_key=$(cat config/master.key)
 : "${RAILS_MASTER_KEY:=$dev_key}"
 
+# TODO: Merge passed in args with `docker run` args below.
 echo "== Starting container"
 docker run \
 	-it \
