@@ -171,7 +171,7 @@ export default function Admin() {
       ) : (
         <>
           <EntriesInfo page={data.page} total={data.total} perPage={data.perPage} />
-          <Table hover responsive>
+          <Table hover>
             <thead>
               <tr>
                 <th style={{ width: '1%' }}></th>
@@ -186,7 +186,7 @@ export default function Admin() {
                   <td>
                     <UserActions user={u} isSelf={u.id === me?.id} reload={reload} />
                   </td>
-                  <td>
+                  <td className="text-break">
                     {u.email}{' '}
                     {u.id === me?.id && <Badge bg="primary">Your Account</Badge>}{' '}
                     {u.admin && <Badge bg="info">Admin</Badge>}
