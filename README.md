@@ -1,6 +1,6 @@
 # Comics
 
-Web based, tablet-first comic reader. A Go backend with a React frontend, compiled into a single binary.
+Web based, tablet-first comic reader.
 
 ![Groups](public/screenshots/001.png)
 ![Group](public/screenshots/002.png)
