@@ -1,5 +1,8 @@
 # Comics
 
+**Note:** This version is deprecated. Use the [main](https://github.com/Oshuma/comics/tree/main) branch instead.
+---
+
 Web based, tablet-first comic reader.
 
 ![Groups](public/screenshots/001.png)
