@@ -1,0 +1,19 @@
+# Copy to ./config.yaml or ~/.config/comics/config.yaml (first one found wins),
+# or pass a path with -config.
+
+# Address to listen on.
+listen: ":3000"
+
+# PostgreSQL connection URL. Can also be set with COMICS_DATABASE_URL.
+database_url: "postgres://postgres:postgres@localhost:5432/comics_development?sslmode=disable"
+
+# Where page images are stored. Relative paths are resolved against this
+# file's directory. To reuse uploads from the old Rails app, point this at its
+# public/system directory.
+storage_dir: "storage"
+
+# Maximum size of a single uploaded archive, in MB.
+max_upload_mb: 2048
+
+# Set to true when serving over HTTPS.
+secure_cookies: false

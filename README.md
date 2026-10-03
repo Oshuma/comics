@@ -1,53 +1,70 @@
 # Comics
 
-Web based, tablet-first comic reader.
+Web based, tablet-first comic reader. A Go backend with a React frontend, compiled into a single binary.
 
 ![Groups](public/screenshots/001.png)
 ![Group](public/screenshots/002.png)
 ![Page](public/screenshots/003.png)
 
-## Development Setup
+## Features
 
-Local development is done with [Docker Compose](https://docs.docker.com/compose/) and uses the [ruby:alpine](https://hub.docker.com/_/ruby) and [postgres:alpine](https://hub.docker.com/_/postgres) repos.
-Make sure you have Docker Compose installed, then run:
+- Upload CBZ / CBR archives (drag and drop, multiple at once), organized into groups
+- Reader with swipe and arrow-key navigation; remembers your place in every comic
+- Reading history and per-group disk usage stats
+- Multi-user, with an admin panel for managing users
 
-```
-$ docker-compose up
-```
+## Requirements
 
-Once both containers are running (`web` and `db`), run the setup helper:
+- PostgreSQL
+- To build: Go 1.26+ and Node.js 22+
 
-```
-$ docker-compose run --rm web ./bin/setup
-```
-
-There's a wrapper script `web.sh` that can be used to run commands in the `web` container:
+## Building
 
 ```
-$ ./bin/web.sh rake routes
+$ make build
 ```
+
+This builds the frontend (`web/`) and embeds it into a single static binary at `build/comics`. Copy that binary anywhere and run it.
+
+## Configuration
+
+The server reads `config.yaml` from the first of these locations that exists:
+
+1. `./config.yaml` (the current working directory)
+2. The OS config directory, e.g. `$HOME/.config/comics/config.yaml` on Linux,
+   `~/Library/Application Support/comics/config.yaml` on macOS
+
+You can also pass a path explicitly with `comics -config /path/to/config.yaml`. See [`config.example.yaml`](config.example.yaml) for all options:
+
+```yaml
+listen: ":3000"
+database_url: "postgres://postgres:postgres@localhost:5432/comics_development?sslmode=disable"
+storage_dir: "storage"      # page images; relative to the config file
+max_upload_mb: 2048
+secure_cookies: false       # set to true behind HTTPS
+```
+
+`COMICS_DATABASE_URL` overrides `database_url` if set. The database schema is created/migrated automatically on startup.
 
 ## Use
 
-After the containers are running and the app is setup, hit [http://localhost:3000](http://localhost:3000) in your browser and you should be redirected to the initial User setup.
-This will setup an admin account, which you can later use to add more users, etc.
+Run `./build/comics` and open [http://localhost:3000](http://localhost:3000). On first run you'll be redirected to create the initial admin user.
 
-## Deploy
+## Upgrading from the Rails version
 
-Any Unix-like server running Ruby 2+ and Postgres 9.5+ should work.
+The Go server uses the same database schema, so point `database_url` at the existing database. Existing accounts and passwords keep working. To keep previously uploaded comics, set `storage_dir` to the old app's `public/system` directory (the on-disk layout is the same).
 
-```
-./bin/web.sh cap production deploy DEPLOY_HOST=example.com
-```
+## Development
 
-Set `DEPLOY_HOST` to anything capistrano's roles understands.  For example:
+Run the Go server and the Vite dev server (with hot reload) in two terminals:
 
 ```
-./bin/web.sh cap production deploy DEPLOY_HOST=foo@example.com:1234
+$ make dev-backend
+$ make dev-frontend
 ```
 
-| Requirements | | |
-| ------------ |-|-|
-| imagemagick | `apt-get install imagemagick` | |
-| unrar | `apt-get install unrar` | (debian note: this must be the 'non-free' package) |
-| unzip | `apt-get install unzip` | |
+Then open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to the Go server on port 3000.
+
+Docker Compose is also available (`docker-compose up`), which runs PostgreSQL and the app.
+
+Run tests with `make test`. `make clean` removes the `build/` directory and the built frontend.

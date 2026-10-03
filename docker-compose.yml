@@ -1,4 +1,3 @@
-version: '2'
 services:
   db:
     image: postgres:alpine
@@ -6,17 +5,19 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: comics_development
-    ports: # This is only for development. DO NOT expose postgresql ports in a real Dockerfile.
+    ports: # This is only for development. DO NOT expose postgresql ports in a real deployment.
       - "5432:5432"
 
-  web:
-    build: .
-    environment:
-      RAILS_ENV: development
-      COMICS_DB_HOST: db
-    volumes:
-      - .:/app
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
+#   web:
+#     build: .
+#     environment:
+#       COMICS_DATABASE_URL: postgres://postgres:postgres@db:5432/comics_development?sslmode=disable
+#     volumes:
+#       - storage:/data/storage
+#     ports:
+#       - "3000:3000"
+#     depends_on:
+#       - db
+# 
+# volumes:
+#   storage:
