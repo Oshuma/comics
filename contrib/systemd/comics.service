@@ -1,0 +1,14 @@
+[Unit]
+Description=Comic Reader
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.config/comics
+ExecStart=%h/.local/bin/comics --config %h/.config/comics/config.yaml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
