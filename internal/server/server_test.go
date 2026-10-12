@@ -71,7 +71,7 @@ func newTestServer(t *testing.T) *client {
 	}
 	cfg := &config.Config{MaxUploadMB: 10}
 	static := fstest.MapFS{"index.html": {Data: []byte("<html></html>")}}
-	ts := httptest.NewServer(New(cfg, store.New(db, m), m, static).Handler())
+	ts := httptest.NewServer(New(cfg, store.New(db, m), m, static, "1.2.3+abc").Handler())
 	t.Cleanup(ts.Close)
 
 	jar, _ := cookiejar.New(nil)
@@ -92,10 +92,13 @@ func cbz(t *testing.T, pages int) []byte {
 func TestUploadAndRead(t *testing.T) {
 	c := newTestServer(t)
 
-	var status struct{ SetupRequired bool }
+	var status struct {
+		SetupRequired bool
+		Version       string
+	}
 	c.do("GET", "/api/status", nil, "", &status)
-	if !status.SetupRequired {
-		t.Fatal("expected setup to be required")
+	if !status.SetupRequired || status.Version != "1.2.3+abc" {
+		t.Fatalf("unexpected status: %+v", status)
 	}
 	user := map[string]string{"email": "admin@example.com", "password": "password1", "passwordConfirmation": "password1"}
 	if code := c.json("POST", "/api/setup", user, nil); code != http.StatusCreated {

@@ -21,8 +21,20 @@ import (
 	"github.com/Oshuma/comics/web"
 )
 
-// Set at build time with -ldflags "-X main.version=...".
-var version = "dev"
+// Set at build time with -ldflags "-X main.version=... -X main.commit=...".
+var (
+	version = "0.0.0-dev"
+	commit  = ""
+)
+
+// fullVersion returns the semver version with the commit as build metadata,
+// e.g. 0.1.0+271c7ec.
+func fullVersion() string {
+	if commit == "" {
+		return version
+	}
+	return version + "+" + commit
+}
 
 func main() {
 	configPath := flag.String("config", "", "path to config.yaml (overrides the default search locations)")
@@ -38,7 +50,7 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Println(version)
+		fmt.Println(fullVersion())
 		return
 	}
 
@@ -81,14 +93,14 @@ func run(configPath string) error {
 
 	srv := &http.Server{
 		Addr:              cfg.Listen,
-		Handler:           server.New(cfg, store.New(db, m), m, web.Dist()).Handler(),
+		Handler:           server.New(cfg, store.New(db, m), m, web.Dist(), fullVersion()).Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       2 * time.Minute,
 	}
 
 	errCh := make(chan error, 1)
 	go func() {
-		slog.Info("listening", "addr", cfg.Listen, "database", cfg.DatabasePath, "storage", cfg.StorageDir, "version", version)
+		slog.Info("listening", "addr", cfg.Listen, "database", cfg.DatabasePath, "storage", cfg.StorageDir, "version", fullVersion())
 		errCh <- srv.ListenAndServe()
 	}()
 

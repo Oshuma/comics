@@ -22,13 +22,15 @@ type Server struct {
 	store  *store.Store
 	media  *media.Storage
 	static fs.FS
+	// Reported by /api/status.
+	version string
 
 	// Serializes initial admin setup.
 	setupMu sync.Mutex
 }
 
-func New(cfg *config.Config, st *store.Store, m *media.Storage, static fs.FS) *Server {
-	return &Server{cfg: cfg, store: st, media: m, static: static}
+func New(cfg *config.Config, st *store.Store, m *media.Storage, static fs.FS, version string) *Server {
+	return &Server{cfg: cfg, store: st, media: m, static: static, version: version}
 }
 
 func (s *Server) Handler() http.Handler {

@@ -88,6 +88,7 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"setupRequired": count == 0,
 		"user":          s.sessionUser(r),
+		"version":       s.version,
 	})
 }
 

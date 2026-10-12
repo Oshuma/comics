@@ -68,6 +68,7 @@ export interface Paginated<T> {
 export interface Status {
   setupRequired: boolean
   user: User | null
+  version: string
 }
 
 export class ApiError extends Error {

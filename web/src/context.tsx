@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status,
     user: status?.user ?? null,
     refresh,
-    signedIn: (user) => setStatus({ setupRequired: false, user }),
+    signedIn: (user) => setStatus((s) => ({ version: '', ...s, setupRequired: false, user })),
     signOut: async () => {
       await api.logout()
       setStatus((s) => (s ? { ...s, user: null } : s))

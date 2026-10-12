@@ -27,6 +27,8 @@ $ make build
 
 This builds the frontend (`web/`) and embeds it into a single static binary at `build/comics`. Copy that binary anywhere and run it.
 
+`make release` does a clean build, runs `go vet` and the tests, and writes the binary to `build/comics-vX.Y.Z`. The version comes from the [`VERSION`](VERSION) file; binaries report it with the git commit appended (`comics -version` prints e.g. `0.1.0+271c7ec`).
+
 ## Configuration
 
 The server reads `config.yaml` from the first of these locations that exists:
@@ -50,6 +52,10 @@ secure_cookies: false        # set to true behind HTTPS
 ## Use
 
 Run `./build/comics` and open [http://localhost:3000](http://localhost:3000). On first run you'll be redirected to create the initial admin user.
+
+## Running behind nginx
+
+An example nginx site that proxies `comics.example.com` to the app is in [`contrib/nginx/comics.example.com.conf`](contrib/nginx/comics.example.com.conf). When serving over HTTPS, set `secure_cookies: true`, and consider `listen: "127.0.0.1:3000"` so the app is only reachable through nginx.
 
 ## Backups
 
