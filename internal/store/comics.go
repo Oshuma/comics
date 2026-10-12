@@ -2,14 +2,11 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/jackc/pgx/v5"
-
-	"github.com/Oshuma/comics/internal/archive"
 	"github.com/Oshuma/comics/internal/media"
 )
 
@@ -41,15 +38,20 @@ func PrettyName(filename string) string {
 	return strings.TrimSuffix(filename, filepath.Ext(filename))
 }
 
+// Comics are considered read when none of their pages are unread.
+const readComicCondition = `NOT EXISTS (SELECT 1 FROM pages p WHERE p.comic_id = c.id AND NOT p.read)`
+
+const comicOrder = `c.filename COLLATE NOCASE, c.id`
+
 const comicSelect = `
-	SELECT c.id, COALESCE(c.filename, ''), c.group_id,
+	SELECT c.id, c.filename, c.group_id,
 		(SELECT count(*) FROM pages p WHERE p.comic_id = c.id),
 		(SELECT p.id FROM pages p WHERE p.comic_id = c.id ORDER BY p.number LIMIT 1),
 		` + readComicCondition + `,
 		EXISTS (SELECT 1 FROM pages p WHERE p.comic_id = c.id AND p.read)
 	FROM comics c`
 
-func scanComic(row pgx.Row) (Comic, error) {
+func scanComic(row scanner) (Comic, error) {
 	var c Comic
 	err := row.Scan(&c.ID, &c.Filename, &c.GroupID, &c.PageCount, &c.CoverPageID, &c.Read, &c.Reading)
 	c.Name = PrettyName(c.Filename)
@@ -57,31 +59,24 @@ func scanComic(row pgx.Row) (Comic, error) {
 }
 
 func (s *Store) ListComics(ctx context.Context, userID, groupID int) ([]Comic, error) {
-	rows, err := s.db.Query(ctx,
-		comicSelect+` WHERE c.user_id = $1 AND c.group_id = $2 ORDER BY c.filename ASC, c.id ASC`, userID, groupID)
-	if err != nil {
-		return nil, err
-	}
-	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (Comic, error) { return scanComic(row) })
+	rows, err := s.db.QueryContext(ctx,
+		comicSelect+` WHERE c.user_id = ? AND c.group_id = ? ORDER BY `+comicOrder, userID, groupID)
+	return collect(rows, err, scanComic)
 }
 
 func (s *Store) GetComic(ctx context.Context, userID, id int) (*ComicDetail, error) {
-	c, err := scanComic(s.db.QueryRow(ctx, comicSelect+` WHERE c.user_id = $1 AND c.id = $2`, userID, id))
+	c, err := scanComic(s.db.QueryRowContext(ctx, comicSelect+` WHERE c.user_id = ? AND c.id = ?`, userID, id))
 	if err != nil {
 		return nil, notFound(err)
 	}
 	d := &ComicDetail{Comic: c}
 
-	if err := s.db.QueryRow(ctx, `SELECT COALESCE(name, '') FROM groups WHERE id = $1`, c.GroupID).Scan(&d.GroupName); err != nil {
+	if err := s.db.QueryRowContext(ctx, `SELECT name FROM groups WHERE id = ?`, c.GroupID).Scan(&d.GroupName); err != nil {
 		return nil, err
 	}
 
-	rows, err := s.db.Query(ctx,
-		`SELECT id, number, COALESCE(read, false) FROM pages WHERE comic_id = $1 ORDER BY number`, id)
-	if err != nil {
-		return nil, err
-	}
-	d.Pages, err = pgx.CollectRows(rows, func(row pgx.CollectableRow) (Page, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, number, read FROM pages WHERE comic_id = ? ORDER BY number`, id)
+	d.Pages, err = collect(rows, err, func(row scanner) (Page, error) {
 		var p Page
 		err := row.Scan(&p.ID, &p.Number, &p.Read)
 		return p, err
@@ -92,73 +87,58 @@ func (s *Store) GetComic(ctx context.Context, userID, id int) (*ComicDetail, err
 	return d, nil
 }
 
-// CreateComic stores a comic and its pages from extracted archive entries.
-// Entries that aren't images are skipped.
-func (s *Store) CreateComic(ctx context.Context, userID, groupID int, filename string, entries []archive.Entry) (*Comic, error) {
+// CreateComic stores a comic from a directory of staged pages, which is moved
+// into the comic's storage location.
+func (s *Store) CreateComic(ctx context.Context, userID, groupID int, filename, stagedDir string, pages []media.StagedPage) (*Comic, error) {
 	if strings.TrimSpace(filename) == "" {
 		return nil, invalid("Filename can't be blank")
+	}
+	if len(pages) == 0 {
+		return nil, invalid("No images found in archive")
 	}
 	if _, err := s.GetGroup(ctx, userID, groupID); err != nil {
 		return nil, err
 	}
 
-	tx, err := s.db.Begin(ctx)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback()
 
-	c := &Comic{Filename: filename, Name: PrettyName(filename), GroupID: groupID}
-	err = tx.QueryRow(ctx, `
-		INSERT INTO comics (filename, user_id, group_id, created_at, updated_at)
-		VALUES ($1, $2, $3, `+now+`, `+now+`) RETURNING id`, filename, userID, groupID,
+	c := &Comic{Filename: filename, Name: PrettyName(filename), GroupID: groupID, PageCount: len(pages)}
+	err = tx.QueryRowContext(ctx,
+		`INSERT INTO comics (filename, user_id, group_id) VALUES (?, ?, ?) RETURNING id`,
+		filename, userID, groupID,
 	).Scan(&c.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	var imported []int
-	cleanup := func() { s.removePageFiles(imported) }
-
-	for _, e := range entries {
-		contentType, ok := media.DetectImageType(e.Path)
-		if !ok {
-			continue
-		}
-		var size int64
-		if info, err := os.Stat(e.Path); err == nil {
-			size = info.Size()
-		}
-		fileName := media.SanitizeFileName(e.Name)
-
-		var pageID int
-		err := tx.QueryRow(ctx, `
-			INSERT INTO pages (number, read, comic_id, image_file_name, image_content_type, image_file_size,
-				image_updated_at, created_at, updated_at)
-			VALUES ($1, false, $2, $3, $4, $5, `+now+`, `+now+`, `+now+`) RETURNING id`,
-			len(imported)+1, c.ID, fileName, contentType, size,
-		).Scan(&pageID)
-		if err != nil {
-			cleanup()
-			return nil, err
-		}
-		imported = append(imported, pageID)
-		if err := s.media.Import(pageID, fileName, e.Path); err != nil {
-			cleanup()
-			return nil, err
-		}
-	}
-
-	if len(imported) == 0 {
-		return nil, invalid("No images found in archive")
-	}
-	if err := tx.Commit(ctx); err != nil {
-		cleanup()
+	stmt, err := tx.PrepareContext(ctx, `
+		INSERT INTO pages (comic_id, number, file, content_type, size)
+		VALUES (?, ?, ?, ?, ?) RETURNING id`)
+	if err != nil {
 		return nil, err
 	}
+	defer stmt.Close()
+	for i, p := range pages {
+		var pageID int
+		if err := stmt.QueryRowContext(ctx, c.ID, i+1, p.File, p.ContentType, p.Size).Scan(&pageID); err != nil {
+			return nil, err
+		}
+		if i == 0 {
+			c.CoverPageID = &pageID
+		}
+	}
 
-	c.PageCount = len(imported)
-	c.CoverPageID = &imported[0]
+	if err := s.media.InstallComic(c.ID, stagedDir); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		s.media.DeleteComic(c.ID)
+		return nil, err
+	}
 	return c, nil
 }
 
@@ -166,28 +146,17 @@ func (s *Store) MoveComic(ctx context.Context, userID, comicID, groupID int) err
 	if _, err := s.GetGroup(ctx, userID, groupID); err != nil {
 		return err
 	}
-	tag, err := s.db.Exec(ctx,
-		`UPDATE comics SET group_id = $3, updated_at = `+now+` WHERE user_id = $1 AND id = $2`,
-		userID, comicID, groupID)
-	if err != nil {
-		return err
-	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
+	return requireAffected(s.db.ExecContext(ctx,
+		`UPDATE comics SET group_id = ? WHERE user_id = ? AND id = ?`, groupID, userID, comicID))
 }
 
 func (s *Store) DeleteComic(ctx context.Context, userID, comicID int) error {
-	return s.deleteTx(ctx, func(tx pgx.Tx) ([]int, error) {
-		ids, err := collectIDs(ctx, tx, `SELECT id FROM comics WHERE user_id = $1 AND id = $2`, userID, comicID)
-		if err != nil {
-			return nil, err
+	return s.deleteComics(ctx, func(tx *sql.Tx) ([]int, error) {
+		ids, err := deletedIDs(ctx, tx, `DELETE FROM comics WHERE user_id = ? AND id = ? RETURNING id`, userID, comicID)
+		if err == nil && len(ids) == 0 {
+			err = ErrNotFound
 		}
-		if len(ids) == 0 {
-			return nil, ErrNotFound
-		}
-		return s.deleteComics(ctx, tx, ids)
+		return ids, err
 	})
 }
 
@@ -197,8 +166,7 @@ func (s *Store) FinishComic(ctx context.Context, userID, comicID int) error {
 	if err != nil {
 		return err
 	}
-	if _, err := s.db.Exec(ctx,
-		`UPDATE pages SET read = true, updated_at = `+now+` WHERE comic_id = $1`, comicID); err != nil {
+	if _, err := s.db.ExecContext(ctx, `UPDATE pages SET read = 1 WHERE comic_id = ? AND NOT read`, comicID); err != nil {
 		return err
 	}
 	return s.RecordHistory(ctx, userID, c.GroupName, c.Filename)
@@ -210,10 +178,9 @@ func (s *Store) FirstUnreadPage(ctx context.Context, userID, comicID int) (*int,
 		return nil, err
 	}
 	var id int
-	err := s.db.QueryRow(ctx, `
-		SELECT id FROM pages WHERE comic_id = $1 AND NOT COALESCE(read, false)
-		ORDER BY number LIMIT 1`, comicID).Scan(&id)
-	if errors.Is(err, pgx.ErrNoRows) {
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id FROM pages WHERE comic_id = ? AND NOT read ORDER BY number LIMIT 1`, comicID).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -228,13 +195,15 @@ func (s *Store) NextComic(ctx context.Context, userID, comicID int) (*int, error
 	if err != nil {
 		return nil, err
 	}
-	comics, err := s.ListComics(ctx, userID, groupID)
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT c.id FROM comics c WHERE c.user_id = ? AND c.group_id = ? ORDER BY `+comicOrder, userID, groupID)
+	ids, err := collect(rows, err, scanInt)
 	if err != nil {
 		return nil, err
 	}
-	for i, c := range comics {
-		if c.ID == comicID && i+1 < len(comics) {
-			return &comics[i+1].ID, nil
+	for i, id := range ids {
+		if id == comicID && i+1 < len(ids) {
+			return &ids[i+1], nil
 		}
 	}
 	return nil, nil
@@ -243,8 +212,8 @@ func (s *Store) NextComic(ctx context.Context, userID, comicID int) (*int, error
 // comicOwned checks ownership and returns the comic's group ID.
 func (s *Store) comicOwned(ctx context.Context, userID, comicID int) (int, error) {
 	var groupID int
-	err := s.db.QueryRow(ctx,
-		`SELECT group_id FROM comics WHERE user_id = $1 AND id = $2`, userID, comicID).Scan(&groupID)
+	err := s.db.QueryRowContext(ctx,
+		`SELECT group_id FROM comics WHERE user_id = ? AND id = ?`, userID, comicID).Scan(&groupID)
 	return groupID, notFound(err)
 }
 
@@ -264,24 +233,23 @@ type PageView struct {
 func (s *Store) ViewPage(ctx context.Context, userID, comicID, pageID int) (*PageView, error) {
 	v := &PageView{ComicID: comicID}
 	var filename string
-	err := s.db.QueryRow(ctx, `
-		SELECT p.id, p.number, COALESCE(c.filename, ''), c.group_id, COALESCE(g.name, ''),
+	err := s.db.QueryRowContext(ctx, `
+		SELECT p.id, p.number, c.filename, c.group_id, g.name,
 			(SELECT count(*) FROM pages x WHERE x.comic_id = c.id),
 			(SELECT x.id FROM pages x WHERE x.comic_id = c.id AND x.number < p.number ORDER BY x.number DESC LIMIT 1),
 			(SELECT x.id FROM pages x WHERE x.comic_id = c.id AND x.number > p.number ORDER BY x.number ASC LIMIT 1)
 		FROM pages p
 		JOIN comics c ON c.id = p.comic_id
 		JOIN groups g ON g.id = c.group_id
-		WHERE c.user_id = $1 AND c.id = $2 AND p.id = $3`, userID, comicID, pageID,
+		WHERE c.user_id = ? AND c.id = ? AND p.id = ?`, userID, comicID, pageID,
 	).Scan(&v.ID, &v.Number, &filename, &v.GroupID, &v.GroupName, &v.PageCount, &v.PrevPageID, &v.NextPageID)
 	if err != nil {
 		return nil, notFound(err)
 	}
 	v.ComicName = PrettyName(filename)
 
-	_, err = s.db.Exec(ctx, `
-		UPDATE pages SET read = (number < $2), updated_at = `+now+`
-		WHERE comic_id = $1 AND COALESCE(read, false) <> (number < $2)`, comicID, v.Number)
+	_, err = s.db.ExecContext(ctx,
+		`UPDATE pages SET read = (number < ?1) WHERE comic_id = ?2 AND read <> (number < ?1)`, v.Number, comicID)
 	if err != nil {
 		return nil, err
 	}
@@ -289,18 +257,19 @@ func (s *Store) ViewPage(ctx context.Context, userID, comicID, pageID int) (*Pag
 }
 
 type PageImage struct {
-	ID       int
-	FileName string
+	ComicID     int
+	File        string
+	ContentType string
 }
 
 // GetPageImage returns the image info for a page owned by the user.
 func (s *Store) GetPageImage(ctx context.Context, userID, pageID int) (*PageImage, error) {
-	img := &PageImage{ID: pageID}
-	err := s.db.QueryRow(ctx, `
-		SELECT COALESCE(p.image_file_name, '')
+	img := &PageImage{}
+	err := s.db.QueryRowContext(ctx, `
+		SELECT p.comic_id, p.file, p.content_type
 		FROM pages p JOIN comics c ON c.id = p.comic_id
-		WHERE c.user_id = $1 AND p.id = $2`, userID, pageID,
-	).Scan(&img.FileName)
+		WHERE c.user_id = ? AND p.id = ?`, userID, pageID,
+	).Scan(&img.ComicID, &img.File, &img.ContentType)
 	if err != nil {
 		return nil, notFound(err)
 	}

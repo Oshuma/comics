@@ -3,9 +3,7 @@ package server
 import (
 	"context"
 	"errors"
-	"net"
 	"net/http"
-	"net/netip"
 	"time"
 
 	"github.com/Oshuma/comics/internal/store"
@@ -81,15 +79,6 @@ func (s *Server) startSession(w http.ResponseWriter, r *http.Request, userID int
 	return nil
 }
 
-func clientIP(r *http.Request) netip.Addr {
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		host = r.RemoteAddr
-	}
-	addr, _ := netip.ParseAddr(host)
-	return addr.Unmap()
-}
-
 func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	count, err := s.store.CountUsers(r.Context())
 	if err != nil {
@@ -145,7 +134,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.store.Authenticate(r.Context(), req.Email, req.Password, clientIP(r))
+	user, err := s.store.Authenticate(r.Context(), req.Email, req.Password)
 	if errors.Is(err, store.ErrNotFound) {
 		writeError(w, http.StatusUnauthorized, "Invalid email or password.")
 		return

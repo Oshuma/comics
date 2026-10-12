@@ -15,8 +15,8 @@ const fileName = "config.yaml"
 type Config struct {
 	// Address the HTTP server listens on.
 	Listen string `yaml:"listen"`
-	// PostgreSQL connection URL.
-	DatabaseURL string `yaml:"database_url"`
+	// Path to the SQLite database file.
+	DatabasePath string `yaml:"database_path"`
 	// Directory where extracted page images are stored.
 	StorageDir string `yaml:"storage_dir"`
 	// Maximum upload size per comic archive, in megabytes.
@@ -30,10 +30,10 @@ type Config struct {
 
 func defaults() Config {
 	return Config{
-		Listen:      ":3000",
-		DatabaseURL: "postgres://postgres:postgres@localhost:5432/comics_development?sslmode=disable",
-		StorageDir:  "storage",
-		MaxUploadMB: 2048,
+		Listen:       ":3000",
+		DatabasePath: "comics.db",
+		StorageDir:   "storage",
+		MaxUploadMB:  2048,
 	}
 }
 
@@ -77,23 +77,30 @@ func Load(explicitPath string) (*Config, error) {
 		cfg.Path, _ = filepath.Abs(path)
 	}
 
-	if v := os.Getenv("COMICS_DATABASE_URL"); v != "" {
-		cfg.DatabaseURL = v
+	if v := os.Getenv("COMICS_DATABASE_PATH"); v != "" {
+		cfg.DatabasePath = v
 	}
 
-	// Relative storage paths are resolved against the config file's directory.
-	if !filepath.IsAbs(cfg.StorageDir) && cfg.Path != "" {
-		cfg.StorageDir = filepath.Join(filepath.Dir(cfg.Path), cfg.StorageDir)
-	}
-	abs, err := filepath.Abs(cfg.StorageDir)
-	if err != nil {
+	var err error
+	if cfg.DatabasePath, err = cfg.resolve(cfg.DatabasePath); err != nil {
 		return nil, err
 	}
-	cfg.StorageDir = abs
+	if cfg.StorageDir, err = cfg.resolve(cfg.StorageDir); err != nil {
+		return nil, err
+	}
 
 	if cfg.MaxUploadMB <= 0 {
 		cfg.MaxUploadMB = defaults().MaxUploadMB
 	}
 
 	return &cfg, nil
+}
+
+// resolve makes a relative path absolute against the config file's directory
+// (or the working directory when no config file was loaded).
+func (c *Config) resolve(path string) (string, error) {
+	if !filepath.IsAbs(path) && c.Path != "" {
+		path = filepath.Join(filepath.Dir(c.Path), path)
+	}
+	return filepath.Abs(path)
 }

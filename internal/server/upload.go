@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/Oshuma/comics/internal/archive"
+	"github.com/Oshuma/comics/internal/media"
 )
 
 // handleUploadComic accepts a multipart upload with a "comic" archive and
@@ -98,7 +99,13 @@ func (s *Server) handleUploadComic(w http.ResponseWriter, r *http.Request) {
 	// The archive itself is no longer needed; free the space early.
 	os.Remove(archivePath)
 
-	comic, err := s.store.CreateComic(r.Context(), userID, groupID, filename, entries)
+	pages, err := media.Stage(extractDir, entries)
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+
+	comic, err := s.store.CreateComic(r.Context(), userID, groupID, filename, extractDir, pages)
 	if err != nil {
 		writeStoreError(w, err)
 		return

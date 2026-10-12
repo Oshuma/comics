@@ -2,10 +2,8 @@ package store
 
 import (
 	"context"
-	"errors"
+	"database/sql"
 	"strings"
-
-	"github.com/jackc/pgx/v5"
 )
 
 type Group struct {
@@ -20,34 +18,31 @@ type Group struct {
 
 // Shared select for groups with their aggregate reading state.
 const groupSelect = `
-	SELECT g.id, COALESCE(g.name, ''),
+	SELECT g.id, g.name,
 		(SELECT count(*) FROM comics c WHERE c.group_id = g.id),
 		(SELECT p.id FROM comics c JOIN pages p ON p.comic_id = c.id
-			WHERE c.group_id = g.id ORDER BY c.filename, c.id, p.number LIMIT 1),
+			WHERE c.group_id = g.id ORDER BY ` + comicOrder + `, p.number LIMIT 1),
 		NOT EXISTS (SELECT 1 FROM comics c JOIN pages p ON p.comic_id = c.id
-			WHERE c.group_id = g.id AND NOT COALESCE(p.read, false)),
+			WHERE c.group_id = g.id AND NOT p.read),
 		EXISTS (SELECT 1 FROM comics c JOIN pages p ON p.comic_id = c.id
 			WHERE c.group_id = g.id AND p.read),
-		(SELECT COALESCE(sum(p.image_file_size), 0) FROM comics c JOIN pages p ON p.comic_id = c.id
-			WHERE c.group_id = g.id)::bigint
+		(SELECT COALESCE(sum(p.size), 0) FROM comics c JOIN pages p ON p.comic_id = c.id
+			WHERE c.group_id = g.id)
 	FROM groups g`
 
-func scanGroup(row pgx.Row) (Group, error) {
+func scanGroup(row scanner) (Group, error) {
 	var g Group
 	err := row.Scan(&g.ID, &g.Name, &g.ComicCount, &g.CoverPageID, &g.Read, &g.Reading, &g.DiskSize)
 	return g, err
 }
 
 func (s *Store) ListGroups(ctx context.Context, userID int) ([]Group, error) {
-	rows, err := s.db.Query(ctx, groupSelect+` WHERE g.user_id = $1 ORDER BY g.name ASC, g.id ASC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (Group, error) { return scanGroup(row) })
+	rows, err := s.db.QueryContext(ctx, groupSelect+` WHERE g.user_id = ? ORDER BY g.name, g.id`, userID)
+	return collect(rows, err, scanGroup)
 }
 
 func (s *Store) GetGroup(ctx context.Context, userID, id int) (*Group, error) {
-	g, err := scanGroup(s.db.QueryRow(ctx, groupSelect+` WHERE g.user_id = $1 AND g.id = $2`, userID, id))
+	g, err := scanGroup(s.db.QueryRowContext(ctx, groupSelect+` WHERE g.user_id = ? AND g.id = ?`, userID, id))
 	if err != nil {
 		return nil, notFound(err)
 	}
@@ -62,40 +57,38 @@ func validateGroupName(name string) (string, error) {
 	return name, nil
 }
 
+var errGroupTaken = invalid("Name has already been taken")
+
 func (s *Store) CreateGroup(ctx context.Context, userID int, name string) (*Group, error) {
 	name, err := validateGroupName(name)
 	if err != nil {
 		return nil, err
 	}
 	g := &Group{Name: name, Read: true}
-	err = s.db.QueryRow(ctx, `
-		INSERT INTO groups (name, user_id, created_at, updated_at)
-		VALUES ($1, $2, `+now+`, `+now+`) RETURNING id`, name, userID,
+	err = s.db.QueryRowContext(ctx,
+		`INSERT INTO groups (name, user_id) VALUES (?, ?) RETURNING id`, name, userID,
 	).Scan(&g.ID)
+	if isUniqueViolation(err) {
+		return nil, errGroupTaken
+	}
 	return g, err
 }
 
-// FindOrCreateGroup returns the user's group with the given name, creating it if needed.
+// FindOrCreateGroup returns the user's group with the given name (ignoring
+// case), creating it if needed.
 func (s *Store) FindOrCreateGroup(ctx context.Context, userID int, name string) (int, error) {
 	name, err := validateGroupName(name)
 	if err != nil {
 		return 0, err
 	}
 	var id int
-	err = s.db.QueryRow(ctx,
-		`SELECT id FROM groups WHERE user_id = $1 AND name = $2 ORDER BY id LIMIT 1`, userID, name,
+	// The no-op update makes RETURNING yield the existing row on conflict.
+	err = s.db.QueryRowContext(ctx, `
+		INSERT INTO groups (name, user_id) VALUES (?, ?)
+		ON CONFLICT (user_id, name) DO UPDATE SET name = name
+		RETURNING id`, name, userID,
 	).Scan(&id)
-	if err == nil {
-		return id, nil
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return 0, err
-	}
-	g, err := s.CreateGroup(ctx, userID, name)
-	if err != nil {
-		return 0, err
-	}
-	return g.ID, nil
+	return id, err
 }
 
 func (s *Store) RenameGroup(ctx context.Context, userID, id int, name string) error {
@@ -103,67 +96,44 @@ func (s *Store) RenameGroup(ctx context.Context, userID, id int, name string) er
 	if err != nil {
 		return err
 	}
-	tag, err := s.db.Exec(ctx,
-		`UPDATE groups SET name = $3, updated_at = `+now+` WHERE user_id = $1 AND id = $2`, userID, id, name)
-	if err != nil {
-		return err
+	err = requireAffected(s.db.ExecContext(ctx,
+		`UPDATE groups SET name = ? WHERE user_id = ? AND id = ?`, name, userID, id))
+	if isUniqueViolation(err) {
+		return errGroupTaken
 	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
+	return err
 }
 
 func (s *Store) DeleteGroup(ctx context.Context, userID, id int) error {
-	return s.deleteTx(ctx, func(tx pgx.Tx) ([]int, error) {
-		comicIDs, err := collectIDs(ctx, tx, `SELECT id FROM comics WHERE user_id = $1 AND group_id = $2`, userID, id)
+	return s.deleteComics(ctx, func(tx *sql.Tx) ([]int, error) {
+		comicIDs, err := deletedIDs(ctx, tx,
+			`DELETE FROM comics WHERE user_id = ? AND group_id = ? RETURNING id`, userID, id)
 		if err != nil {
 			return nil, err
 		}
-		pageIDs, err := s.deleteComics(ctx, tx, comicIDs)
-		if err != nil {
-			return nil, err
-		}
-		tag, err := tx.Exec(ctx, `DELETE FROM groups WHERE user_id = $1 AND id = $2`, userID, id)
-		if err != nil {
-			return nil, err
-		}
-		if tag.RowsAffected() == 0 {
-			return nil, ErrNotFound
-		}
-		return pageIDs, nil
+		err = requireAffected(tx.ExecContext(ctx, `DELETE FROM groups WHERE user_id = ? AND id = ?`, userID, id))
+		return comicIDs, err
 	})
 }
-
-// Comics are considered read when none of their pages are unread.
-const readComicCondition = `NOT EXISTS (SELECT 1 FROM pages p WHERE p.comic_id = c.id AND NOT COALESCE(p.read, false))`
 
 // DeleteGroupComics removes all comics in a group, or only the read ones.
 func (s *Store) DeleteGroupComics(ctx context.Context, userID, groupID int, onlyRead bool) error {
 	if _, err := s.GetGroup(ctx, userID, groupID); err != nil {
 		return err
 	}
-	sql := `SELECT c.id FROM comics c WHERE c.user_id = $1 AND c.group_id = $2`
+	query := `DELETE FROM comics AS c WHERE c.user_id = ? AND c.group_id = ?`
 	if onlyRead {
-		sql += ` AND ` + readComicCondition
+		query += ` AND ` + readComicCondition
 	}
-	return s.deleteTx(ctx, func(tx pgx.Tx) ([]int, error) {
-		comicIDs, err := collectIDs(ctx, tx, sql, userID, groupID)
-		if err != nil {
-			return nil, err
-		}
-		return s.deleteComics(ctx, tx, comicIDs)
+	return s.deleteComics(ctx, func(tx *sql.Tx) ([]int, error) {
+		return deletedIDs(ctx, tx, query+` RETURNING id`, userID, groupID)
 	})
 }
 
 // DeleteReadComics removes every read comic the user has.
 func (s *Store) DeleteReadComics(ctx context.Context, userID int) error {
-	return s.deleteTx(ctx, func(tx pgx.Tx) ([]int, error) {
-		comicIDs, err := collectIDs(ctx, tx,
-			`SELECT c.id FROM comics c WHERE c.user_id = $1 AND `+readComicCondition, userID)
-		if err != nil {
-			return nil, err
-		}
-		return s.deleteComics(ctx, tx, comicIDs)
+	return s.deleteComics(ctx, func(tx *sql.Tx) ([]int, error) {
+		return deletedIDs(ctx, tx,
+			`DELETE FROM comics AS c WHERE c.user_id = ? AND `+readComicCondition+` RETURNING id`, userID)
 	})
 }

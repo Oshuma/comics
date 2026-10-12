@@ -4,12 +4,12 @@
 # Address to listen on.
 listen: ":3000"
 
-# PostgreSQL connection URL. Can also be set with COMICS_DATABASE_URL.
-database_url: "postgres://postgres:postgres@localhost:5432/comics_development?sslmode=disable"
+# SQLite database file, created if it doesn't exist. Can also be set with
+# COMICS_DATABASE_PATH. Relative paths are resolved against this file's directory.
+database_path: "comics.db"
 
 # Where page images are stored. Relative paths are resolved against this
-# file's directory. To reuse uploads from the old Rails app, point this at its
-# public/system directory.
+# file's directory.
 storage_dir: "storage"
 
 # Maximum size of a single uploaded archive, in MB.

@@ -4,20 +4,18 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"errors"
-	"net/netip"
+	"fmt"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Same cost the Rails app used with Devise, so hashes are interchangeable.
 const bcryptCost = 11
 
 var emailRegexp = regexp.MustCompile(`^[^@\s]+@[^@\s]+$`)
@@ -28,12 +26,12 @@ var dummyHash = sync.OnceValue(func() []byte {
 })
 
 type User struct {
-	ID          int       `json:"id"`
-	Email       string    `json:"email"`
-	Admin       bool      `json:"admin"`
-	CreatedAt   time.Time `json:"createdAt"`
-	GroupCount  int       `json:"groupCount"`
-	ComicCount  int       `json:"comicCount"`
+	ID           int       `json:"id"`
+	Email        string    `json:"email"`
+	Admin        bool      `json:"admin"`
+	CreatedAt    time.Time `json:"createdAt"`
+	GroupCount   int       `json:"groupCount"`
+	ComicCount   int       `json:"comicCount"`
 	passwordHash string
 }
 
@@ -50,7 +48,7 @@ func normalizeEmail(email string) string {
 
 func (s *Store) CountUsers(ctx context.Context) (int, error) {
 	var n int
-	err := s.db.QueryRow(ctx, `SELECT count(*) FROM users`).Scan(&n)
+	err := s.db.QueryRowContext(ctx, `SELECT count(*) FROM users`).Scan(&n)
 	return n, err
 }
 
@@ -85,17 +83,14 @@ func (s *Store) CreateUser(ctx context.Context, u NewUser) (*User, error) {
 	}
 
 	user := &User{Email: email, Admin: u.Admin}
-	err = s.db.QueryRow(ctx, `
-		INSERT INTO users (email, encrypted_password, admin, created_at, updated_at)
-		VALUES ($1, $2, $3, `+now+`, `+now+`)
-		RETURNING id, created_at`,
+	err = s.db.QueryRowContext(ctx,
+		`INSERT INTO users (email, password_hash, admin) VALUES (?, ?, ?) RETURNING id, created_at`,
 		email, string(hash), u.Admin,
 	).Scan(&user.ID, &user.CreatedAt)
+	if isUniqueViolation(err) {
+		return nil, invalid("Email has already been taken")
+	}
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return nil, invalid("Email has already been taken")
-		}
 		return nil, err
 	}
 	return user, nil
@@ -103,8 +98,8 @@ func (s *Store) CreateUser(ctx context.Context, u NewUser) (*User, error) {
 
 func (s *Store) GetUser(ctx context.Context, id int) (*User, error) {
 	u := &User{}
-	err := s.db.QueryRow(ctx,
-		`SELECT id, email, COALESCE(admin, false), created_at FROM users WHERE id = $1`, id,
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id, email, admin, created_at FROM users WHERE id = ?`, id,
 	).Scan(&u.ID, &u.Email, &u.Admin, &u.CreatedAt)
 	if err != nil {
 		return nil, notFound(err)
@@ -112,14 +107,14 @@ func (s *Store) GetUser(ctx context.Context, id int) (*User, error) {
 	return u, nil
 }
 
-// Authenticate checks the credentials and records the sign-in.
-func (s *Store) Authenticate(ctx context.Context, email, password string, ip netip.Addr) (*User, error) {
+// Authenticate checks the credentials.
+func (s *Store) Authenticate(ctx context.Context, email, password string) (*User, error) {
 	u := &User{}
-	err := s.db.QueryRow(ctx,
-		`SELECT id, email, COALESCE(admin, false), created_at, encrypted_password FROM users WHERE email = $1`,
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id, email, admin, created_at, password_hash FROM users WHERE email = ?`,
 		normalizeEmail(email),
 	).Scan(&u.ID, &u.Email, &u.Admin, &u.CreatedAt, &u.passwordHash)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, sql.ErrNoRows) {
 		// Burn comparable time so response timing doesn't reveal valid emails.
 		bcrypt.CompareHashAndPassword(dummyHash(), []byte(password))
 		return nil, ErrNotFound
@@ -130,42 +125,23 @@ func (s *Store) Authenticate(ctx context.Context, email, password string, ip net
 	if bcrypt.CompareHashAndPassword([]byte(u.passwordHash), []byte(password)) != nil {
 		return nil, ErrNotFound
 	}
-
-	var addr *netip.Addr
-	if ip.IsValid() {
-		addr = &ip
-	}
-	_, err = s.db.Exec(ctx, `
-		UPDATE users SET
-			sign_in_count = sign_in_count + 1,
-			last_sign_in_at = COALESCE(current_sign_in_at, `+now+`),
-			last_sign_in_ip = COALESCE(current_sign_in_ip, $2),
-			current_sign_in_at = `+now+`,
-			current_sign_in_ip = $2
-		WHERE id = $1`, u.ID, addr)
-	if err != nil {
-		return nil, err
-	}
 	return u, nil
 }
 
 func (s *Store) ListUsers(ctx context.Context, page int) ([]User, int, error) {
 	var total int
-	if err := s.db.QueryRow(ctx, `SELECT count(*) FROM users`).Scan(&total); err != nil {
+	if err := s.db.QueryRowContext(ctx, `SELECT count(*) FROM users`).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 
-	rows, err := s.db.Query(ctx, `
-		SELECT u.id, u.email, COALESCE(u.admin, false), u.created_at,
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT u.id, u.email, u.admin, u.created_at,
 			(SELECT count(*) FROM groups g WHERE g.user_id = u.id),
 			(SELECT count(*) FROM comics c WHERE c.user_id = u.id)
 		FROM users u
-		ORDER BY u.created_at ASC, u.id ASC
-		LIMIT $1 OFFSET $2`, PerPage, offset(page))
-	if err != nil {
-		return nil, 0, err
-	}
-	users, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (User, error) {
+		ORDER BY u.id
+		LIMIT ? OFFSET ?`, PerPage, offset(page))
+	users, err := collect(rows, err, func(row scanner) (User, error) {
 		var u User
 		err := row.Scan(&u.ID, &u.Email, &u.Admin, &u.CreatedAt, &u.GroupCount, &u.ComicCount)
 		return u, err
@@ -174,44 +150,18 @@ func (s *Store) ListUsers(ctx context.Context, page int) ([]User, int, error) {
 }
 
 func (s *Store) SetAdmin(ctx context.Context, id int, admin bool) error {
-	tag, err := s.db.Exec(ctx, `UPDATE users SET admin = $2, updated_at = `+now+` WHERE id = $1`, id, admin)
-	if err != nil {
-		return err
-	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
+	return requireAffected(s.db.ExecContext(ctx, `UPDATE users SET admin = ? WHERE id = ?`, admin, id))
 }
 
 // DeleteUser removes a user along with all of their groups, comics and history.
 func (s *Store) DeleteUser(ctx context.Context, id int) error {
-	return s.deleteTx(ctx, func(tx pgx.Tx) ([]int, error) {
-		comicIDs, err := collectIDs(ctx, tx, `SELECT id FROM comics WHERE user_id = $1`, id)
+	return s.deleteComics(ctx, func(tx *sql.Tx) ([]int, error) {
+		comicIDs, err := deletedIDs(ctx, tx, `DELETE FROM comics WHERE user_id = ? RETURNING id`, id)
 		if err != nil {
 			return nil, err
 		}
-		pageIDs, err := s.deleteComics(ctx, tx, comicIDs)
-		if err != nil {
-			return nil, err
-		}
-		for _, sql := range []string{
-			`DELETE FROM histories WHERE user_id = $1`,
-			`DELETE FROM groups WHERE user_id = $1`,
-			`DELETE FROM sessions WHERE user_id = $1`,
-		} {
-			if _, err := tx.Exec(ctx, sql, id); err != nil {
-				return nil, err
-			}
-		}
-		tag, err := tx.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
-		if err != nil {
-			return nil, err
-		}
-		if tag.RowsAffected() == 0 {
-			return nil, ErrNotFound
-		}
-		return pageIDs, nil
+		err = requireAffected(tx.ExecContext(ctx, `DELETE FROM users WHERE id = ?`, id))
+		return comicIDs, err
 	})
 }
 
@@ -230,26 +180,25 @@ func (s *Store) CreateSession(ctx context.Context, userID int, ttl time.Duration
 	}
 	token := base64.RawURLEncoding.EncodeToString(buf)
 
-	_, err := s.db.Exec(ctx, `
-		INSERT INTO sessions (token_hash, user_id, expires_at, created_at)
-		VALUES ($1, $2, `+now+` + make_interval(secs => $3), `+now+`)`,
-		hashToken(token), userID, ttl.Seconds())
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, datetime('now', ?))`,
+		hashToken(token), userID, fmt.Sprintf("%+d seconds", int(ttl.Seconds())))
 	if err != nil {
 		return "", err
 	}
 
 	// Opportunistic cleanup of expired sessions.
-	s.db.Exec(ctx, `DELETE FROM sessions WHERE expires_at < `+now)
+	s.db.ExecContext(ctx, `DELETE FROM sessions WHERE expires_at < datetime('now')`)
 
 	return token, nil
 }
 
 func (s *Store) SessionUser(ctx context.Context, token string) (*User, error) {
 	u := &User{}
-	err := s.db.QueryRow(ctx, `
-		SELECT u.id, u.email, COALESCE(u.admin, false), u.created_at
+	err := s.db.QueryRowContext(ctx, `
+		SELECT u.id, u.email, u.admin, u.created_at
 		FROM sessions s JOIN users u ON u.id = s.user_id
-		WHERE s.token_hash = $1 AND s.expires_at > `+now,
+		WHERE s.token_hash = ? AND s.expires_at > datetime('now')`,
 		hashToken(token),
 	).Scan(&u.ID, &u.Email, &u.Admin, &u.CreatedAt)
 	if err != nil {
@@ -259,6 +208,6 @@ func (s *Store) SessionUser(ctx context.Context, token string) (*User, error) {
 }
 
 func (s *Store) DeleteSession(ctx context.Context, token string) error {
-	_, err := s.db.Exec(ctx, `DELETE FROM sessions WHERE token_hash = $1`, hashToken(token))
+	_, err := s.db.ExecContext(ctx, `DELETE FROM sessions WHERE token_hash = ?`, hashToken(token))
 	return err
 }

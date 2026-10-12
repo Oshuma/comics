@@ -1,5 +1,4 @@
 ## Code
-- Never start docker services. These will be started/stopped manually.
 - Don't be too verbose with code comments.
 
 ## Source Control

@@ -2,35 +2,58 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"embed"
 	"fmt"
 	"io/fs"
+	"net/url"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	_ "modernc.org/sqlite"
 )
 
 //go:embed migrations/*.sql
 var migrationFiles embed.FS
 
-func Connect(ctx context.Context, url string) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(ctx, url)
+// Applied to every connection. Transactions take the write lock up front
+// (BEGIN IMMEDIATE) so they wait on busy_timeout rather than failing when
+// upgrading from a read.
+var pragmas = []string{
+	"foreign_keys(1)",
+	"journal_mode(WAL)",
+	"synchronous(NORMAL)",
+	"busy_timeout(10000)",
+}
+
+// Open opens (creating if needed) the SQLite database at path.
+func Open(ctx context.Context, path string) (*sql.DB, error) {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return nil, fmt.Errorf("creating database dir: %w", err)
+	}
+
+	q := url.Values{"_txlock": {"immediate"}}
+	for _, p := range pragmas {
+		q.Add("_pragma", p)
+	}
+	db, err := sql.Open("sqlite", "file:"+path+"?"+q.Encode())
 	if err != nil {
-		return nil, fmt.Errorf("connecting to database: %w", err)
+		return nil, fmt.Errorf("opening database: %w", err)
 	}
-	if err := pool.Ping(ctx); err != nil {
-		pool.Close()
-		return nil, fmt.Errorf("connecting to database: %w", err)
+	if err := db.PingContext(ctx); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("opening database: %w", err)
 	}
-	return pool, nil
+	return db, nil
 }
 
 // Migrate applies any embedded migrations that haven't been run yet.
-func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
-	if _, err := pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS comics_migrations (
-		version text PRIMARY KEY,
-		applied_at timestamp without time zone NOT NULL DEFAULT (now() AT TIME ZONE 'utc')
+func Migrate(ctx context.Context, db *sql.DB) error {
+	if _, err := db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (
+		version TEXT PRIMARY KEY,
+		applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	)`); err != nil {
 		return fmt.Errorf("creating migrations table: %w", err)
 	}
@@ -45,31 +68,32 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 		version := strings.TrimSuffix(strings.TrimPrefix(name, "migrations/"), ".sql")
 
 		var exists bool
-		if err := pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM comics_migrations WHERE version = $1)`, version).Scan(&exists); err != nil {
+		if err := db.QueryRowContext(ctx,
+			`SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE version = ?)`, version).Scan(&exists); err != nil {
 			return err
 		}
 		if exists {
 			continue
 		}
 
-		sql, err := migrationFiles.ReadFile(name)
+		script, err := migrationFiles.ReadFile(name)
 		if err != nil {
 			return err
 		}
 
-		tx, err := pool.Begin(ctx)
+		tx, err := db.BeginTx(ctx, nil)
 		if err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, string(sql)); err != nil {
-			tx.Rollback(ctx)
+		if _, err := tx.ExecContext(ctx, string(script)); err != nil {
+			tx.Rollback()
 			return fmt.Errorf("migration %s: %w", version, err)
 		}
-		if _, err := tx.Exec(ctx, `INSERT INTO comics_migrations (version) VALUES ($1)`, version); err != nil {
-			tx.Rollback(ctx)
+		if _, err := tx.ExecContext(ctx, `INSERT INTO schema_migrations (version) VALUES (?)`, version); err != nil {
+			tx.Rollback()
 			return err
 		}
-		if err := tx.Commit(ctx); err != nil {
+		if err := tx.Commit(); err != nil {
 			return err
 		}
 	}

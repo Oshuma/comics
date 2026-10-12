@@ -237,12 +237,14 @@ func (s *Server) servePage(w http.ResponseWriter, r *http.Request, thumb bool) {
 		return
 	}
 
-	path := s.media.OriginalPath(img.ID, img.FileName)
+	path := s.media.PagePath(img.ComicID, img.File)
+	contentType := img.ContentType
 	if thumb {
-		if path, err = s.media.Thumb(img.ID, img.FileName); err != nil {
+		if path, err = s.media.Thumb(img.ComicID, img.File); err != nil {
 			writeError(w, http.StatusNotFound, "Image not available")
 			return
 		}
+		contentType = "image/jpeg"
 	}
 
 	f, err := os.Open(path)
@@ -257,14 +259,7 @@ func (s *Server) servePage(w http.ResponseWriter, r *http.Request, thumb bool) {
 		return
 	}
 
-	// Sniff the type rather than trusting the extension.
-	buf := make([]byte, 512)
-	n, _ := f.Read(buf)
-	if _, err := f.Seek(0, 0); err != nil {
-		writeStoreError(w, err)
-		return
-	}
-	w.Header().Set("Content-Type", http.DetectContentType(buf[:n]))
+	w.Header().Set("Content-Type", contentType)
 	// Page IDs are never reused, so images can be cached indefinitely.
 	w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
 	http.ServeContent(w, r, "", info.ModTime(), f)

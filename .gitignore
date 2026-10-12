@@ -1,5 +1,8 @@
 /build
 /storage
+/*.db
+/*.db-shm
+/*.db-wal
 /config.yaml
 /web/node_modules
 /web/dist/*

@@ -15,8 +15,9 @@ Web based, tablet-first comic reader.
 
 ## Requirements
 
-- PostgreSQL
 - To build: Go 1.26+ and Node.js 22+
+
+Data is stored in a SQLite database file plus a directory of page images; there's no separate database server to run.
 
 ## Building
 
@@ -38,21 +39,25 @@ You can also pass a path explicitly with `comics -config /path/to/config.yaml`. 
 
 ```yaml
 listen: ":3000"
-database_url: "postgres://postgres:postgres@localhost:5432/comics_development?sslmode=disable"
-storage_dir: "storage"      # page images; relative to the config file
+database_path: "comics.db"  # SQLite database; relative to the config file
+storage_dir: "storage"       # page images; relative to the config file
 max_upload_mb: 2048
-secure_cookies: false       # set to true behind HTTPS
+secure_cookies: false        # set to true behind HTTPS
 ```
 
-`COMICS_DATABASE_URL` overrides `database_url` if set. The database schema is created/migrated automatically on startup.
+`COMICS_DATABASE_PATH` overrides `database_path` if set. The database is created and migrated automatically on startup.
 
 ## Use
 
 Run `./build/comics` and open [http://localhost:3000](http://localhost:3000). On first run you'll be redirected to create the initial admin user.
 
-## Upgrading from the Rails version
+## Backups
 
-The Go server uses the same database schema, so point `database_url` at the existing database. Existing accounts and passwords keep working. To keep previously uploaded comics, set `storage_dir` to the old app's `public/system` directory (the on-disk layout is the same).
+Back up the storage directory and the database. The database runs in WAL mode, so don't copy `comics.db` while the server is running; take a consistent snapshot with:
+
+```
+$ sqlite3 comics.db ".backup comics-backup.db"
+```
 
 ## Development
 
@@ -64,7 +69,5 @@ $ make dev-frontend
 ```
 
 Then open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to the Go server on port 3000.
-
-Docker Compose is also available (`docker-compose up`), which runs PostgreSQL and the app.
 
 Run tests with `make test`. `make clean` removes the `build/` directory and the built frontend.

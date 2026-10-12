@@ -62,13 +62,13 @@ func run(configPath string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := database.Connect(ctx, cfg.DatabaseURL)
+	db, err := database.Open(ctx, cfg.DatabasePath)
 	if err != nil {
 		return err
 	}
-	defer pool.Close()
+	defer db.Close()
 
-	if err := database.Migrate(ctx, pool); err != nil {
+	if err := database.Migrate(ctx, db); err != nil {
 		return err
 	}
 
@@ -81,14 +81,14 @@ func run(configPath string) error {
 
 	srv := &http.Server{
 		Addr:              cfg.Listen,
-		Handler:           server.New(cfg, store.New(pool, m), m, web.Dist()).Handler(),
+		Handler:           server.New(cfg, store.New(db, m), m, web.Dist()).Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       2 * time.Minute,
 	}
 
 	errCh := make(chan error, 1)
 	go func() {
-		slog.Info("listening", "addr", cfg.Listen, "storage", cfg.StorageDir, "version", version)
+		slog.Info("listening", "addr", cfg.Listen, "database", cfg.DatabasePath, "storage", cfg.StorageDir, "version", version)
 		errCh <- srv.ListenAndServe()
 	}()
 

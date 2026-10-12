@@ -1,8 +1,9 @@
 // Package media manages page image files on disk.
 //
-// Files are laid out the same way Paperclip stored them in the original Rails
-// app (pages/images/000/000/123/{original,thumb}/name.jpg), so an existing
-// public/system directory can be used as the storage directory.
+// Each comic's pages live in their own directory:
+//
+//	comics/<comic id>/0001.jpg
+//	comics/<comic id>/thumbs/0001.jpg
 package media
 
 import (
@@ -10,27 +11,33 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/gif"
+	"image/color"
 	"image/jpeg"
-	"image/png"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
 	"golang.org/x/sync/singleflight"
+
+	_ "image/gif"
+	_ "image/png"
+
+	"github.com/Oshuma/comics/internal/archive"
 )
 
 const ThumbSize = 300
 
-var allowedTypes = map[string]bool{
-	"image/jpeg": true,
-	"image/png":  true,
-	"image/gif":  true,
-	"image/webp": true,
+// Supported image types and the extension pages are stored with.
+var imageExts = map[string]string{
+	"image/jpeg": ".jpg",
+	"image/png":  ".png",
+	"image/gif":  ".gif",
+	"image/webp": ".webp",
 }
 
 type Storage struct {
@@ -46,7 +53,7 @@ func New(root string) (*Storage, error) {
 }
 
 // TempDir creates a scratch directory on the same filesystem as the storage
-// root, so imported files can be renamed into place instead of copied.
+// root, so staged comics can be renamed into place instead of copied.
 func (s *Storage) TempDir() (string, error) {
 	base := filepath.Join(s.root, "tmp")
 	if err := os.MkdirAll(base, 0o755); err != nil {
@@ -55,21 +62,69 @@ func (s *Storage) TempDir() (string, error) {
 	return os.MkdirTemp(base, "upload-")
 }
 
-func (s *Storage) pageDir(pageID int) string {
-	id := fmt.Sprintf("%09d", pageID)
-	return filepath.Join(s.root, "pages", "images", id[0:3], id[3:6], id[6:9])
+func (s *Storage) comicDir(comicID int) string {
+	return filepath.Join(s.root, "comics", strconv.Itoa(comicID))
 }
 
-func (s *Storage) OriginalPath(pageID int, fileName string) string {
-	return filepath.Join(s.pageDir(pageID), "original", fileName)
+func (s *Storage) PagePath(comicID int, file string) string {
+	return filepath.Join(s.comicDir(comicID), filepath.Base(file))
 }
 
-func (s *Storage) thumbPath(pageID int, fileName string) string {
-	return filepath.Join(s.pageDir(pageID), "thumb", fileName)
+func (s *Storage) thumbPath(comicID int, file string) string {
+	name := strings.TrimSuffix(filepath.Base(file), filepath.Ext(file)) + ".jpg"
+	return filepath.Join(s.comicDir(comicID), "thumbs", name)
 }
 
-// DetectImageType returns the MIME type of the file if it's a supported image.
-func DetectImageType(path string) (string, bool) {
+// StagedPage is a page image ready to be installed.
+type StagedPage struct {
+	File        string
+	ContentType string
+	Size        int64
+}
+
+// Stage turns extracted archive entries in dir into numbered page files
+// (0001.jpg, ...), deleting anything that isn't a supported image.
+func Stage(dir string, entries []archive.Entry) ([]StagedPage, error) {
+	var pages []StagedPage
+	for _, e := range entries {
+		contentType, ok := detectImageType(e.Path)
+		if !ok {
+			if err := os.Remove(e.Path); err != nil {
+				return nil, err
+			}
+			continue
+		}
+		info, err := os.Stat(e.Path)
+		if err != nil {
+			return nil, err
+		}
+		file := fmt.Sprintf("%04d%s", len(pages)+1, imageExts[contentType])
+		if err := os.Rename(e.Path, filepath.Join(dir, file)); err != nil {
+			return nil, err
+		}
+		pages = append(pages, StagedPage{File: file, ContentType: contentType, Size: info.Size()})
+	}
+	return pages, nil
+}
+
+// InstallComic moves a staged directory into place as the comic's pages.
+func (s *Storage) InstallComic(comicID int, stagedDir string) error {
+	dst := s.comicDir(comicID)
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return err
+	}
+	return os.Rename(stagedDir, dst)
+}
+
+func (s *Storage) DeleteComic(comicID int) error {
+	err := os.RemoveAll(s.comicDir(comicID))
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return nil
+}
+
+func detectImageType(path string) (string, bool) {
 	f, err := os.Open(path)
 	if err != nil {
 		return "", false
@@ -79,49 +134,13 @@ func DetectImageType(path string) (string, bool) {
 	buf := make([]byte, 512)
 	n, _ := io.ReadFull(f, buf)
 	ct := http.DetectContentType(buf[:n])
-	return ct, allowedTypes[ct]
+	_, ok := imageExts[ct]
+	return ct, ok
 }
 
-// SanitizeFileName mimics Paperclip's filename cleaning.
-func SanitizeFileName(name string) string {
-	name = filepath.Base(strings.ReplaceAll(name, "\\", "/"))
-	return strings.Map(func(r rune) rune {
-		if strings.ContainsRune(`&$+,/:;=?@<>[]{}|\^~%# `, r) || r < 32 {
-			return '_'
-		}
-		return r
-	}, name)
-}
-
-// Import moves src into place as the original image for a page.
-func (s *Storage) Import(pageID int, fileName, src string) error {
-	dst := s.OriginalPath(pageID, fileName)
-	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
-		return err
-	}
-	if err := os.Rename(src, dst); err == nil {
-		return nil
-	}
-	// Rename fails across filesystems; fall back to copying.
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(out, in); err != nil {
-		out.Close()
-		return err
-	}
-	return out.Close()
-}
-
-// Thumb returns the thumbnail path for a page, generating it if needed.
-func (s *Storage) Thumb(pageID int, fileName string) (string, error) {
-	dst := s.thumbPath(pageID, fileName)
+// Thumb returns the JPEG thumbnail path for a page, generating it if needed.
+func (s *Storage) Thumb(comicID int, file string) (string, error) {
+	dst := s.thumbPath(comicID, file)
 	if _, err := os.Stat(dst); err == nil {
 		return dst, nil
 	}
@@ -130,20 +149,12 @@ func (s *Storage) Thumb(pageID int, fileName string) (string, error) {
 		if _, err := os.Stat(dst); err == nil {
 			return nil, nil
 		}
-		return nil, generateThumb(s.OriginalPath(pageID, fileName), dst)
+		return nil, generateThumb(s.PagePath(comicID, file), dst)
 	})
 	if err != nil {
 		return "", err
 	}
 	return dst, nil
-}
-
-func (s *Storage) DeletePage(pageID int) error {
-	err := os.RemoveAll(s.pageDir(pageID))
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return err
-	}
-	return nil
 }
 
 func generateThumb(src, dst string) error {
@@ -153,12 +164,12 @@ func generateThumb(src, dst string) error {
 	}
 	defer f.Close()
 
-	img, format, err := image.Decode(f)
+	img, _, err := image.Decode(f)
 	if err != nil {
 		return fmt.Errorf("decoding %s: %w", src, err)
 	}
 
-	// Equivalent of ImageMagick's "300x300>": only shrink, keep aspect ratio.
+	// Only shrink, keeping aspect ratio.
 	b := img.Bounds()
 	w, h := b.Dx(), b.Dy()
 	if w > ThumbSize || h > ThumbSize {
@@ -169,21 +180,14 @@ func generateThumb(src, dst string) error {
 			w = max(1, w*ThumbSize/h)
 			h = ThumbSize
 		}
-		dstImg := image.NewRGBA(image.Rect(0, 0, w, h))
-		draw.CatmullRom.Scale(dstImg, dstImg.Bounds(), img, b, draw.Src, nil)
-		img = dstImg
 	}
+	// White background so transparent areas don't turn black in the JPEG.
+	thumb := image.NewRGBA(image.Rect(0, 0, w, h))
+	draw.Draw(thumb, thumb.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
+	draw.CatmullRom.Scale(thumb, thumb.Bounds(), img, b, draw.Over, nil)
 
 	var buf bytes.Buffer
-	switch format {
-	case "png":
-		err = png.Encode(&buf, img)
-	case "gif":
-		err = gif.Encode(&buf, img, nil)
-	default:
-		err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 85})
-	}
-	if err != nil {
+	if err := jpeg.Encode(&buf, thumb, &jpeg.Options{Quality: 85}); err != nil {
 		return err
 	}
 
