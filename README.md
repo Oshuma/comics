@@ -13,6 +13,8 @@ Web based, tablet-first comic reader.
 - Reading history and per-group disk usage stats
 - Multi-user, with an admin panel for managing users
 
+**Note:** For the old Rails version, see this branch: https://github.com/Oshuma/comics/tree/rails
+
 ## Requirements
 
 - To build: Go 1.26+ and Node.js 22+
