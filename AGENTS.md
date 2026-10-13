@@ -1,4 +1,5 @@
 ## Code
+- Never update the version. That will be done manually.
 - Don't be too verbose with code comments.
 
 ## Source Control
