@@ -17,16 +17,18 @@ import {
   ViewToggle,
 } from '../components/Common'
 import { useGroupMenu } from '../components/GroupMenu'
+import { useRenameComic } from '../components/RenameComic'
 
 interface ComicProps {
   comic: Comic
   groups: Group[]
-  onRemoved: () => void
+  onChanged: () => void
 }
 
-function useComicActions({ comic, onRemoved }: ComicProps) {
+function useComicActions({ comic, onChanged }: ComicProps) {
   const flash = useFlash()
   const navigate = useNavigate()
+  const rename = useRenameComic(comic, onChanged)
 
   const read = async (e: MouseEvent) => {
     e.preventDefault()
@@ -41,7 +43,7 @@ function useComicActions({ comic, onRemoved }: ComicProps) {
     try {
       await api.moveComic(comic.id, groupId)
       flash('success', 'Comic moved.')
-      onRemoved()
+      onChanged()
     } catch (err) {
       flash('danger', errorMessage(err))
     }
@@ -52,18 +54,18 @@ function useComicActions({ comic, onRemoved }: ComicProps) {
     try {
       await api.deleteComic(comic.id)
       flash('success', 'Comic deleted.')
-      onRemoved()
+      onChanged()
     } catch (err) {
       flash('danger', errorMessage(err))
     }
   }
 
-  return { read, move, remove }
+  return { read, move, remove, rename }
 }
 
 function ComicCard(props: ComicProps) {
   const { comic, groups } = props
-  const { read, move, remove } = useComicActions(props)
+  const { read, move, remove, rename } = useComicActions(props)
   const [open, setOpen] = useState(false)
   const [target, setTarget] = useState('')
 
@@ -108,9 +110,12 @@ function ComicCard(props: ComicProps) {
                       </option>
                     ))}
                 </Form.Select>
-                <div className="d-flex gap-2">
+                <div className="d-flex flex-wrap gap-2">
                   <Button size="sm" disabled={!target} onClick={() => move(Number(target))}>
                     Move
+                  </Button>
+                  <Button size="sm" variant="outline-secondary" onClick={rename.open}>
+                    Rename
                   </Button>
                   <Button size="sm" variant="danger" onClick={remove}>
                     Delete
@@ -121,13 +126,14 @@ function ComicCard(props: ComicProps) {
           </Collapse>
         </Card.Body>
       </Card>
+      {rename.modal}
     </div>
   )
 }
 
 function ComicRow(props: ComicProps) {
   const { comic, groups } = props
-  const { read, move, remove } = useComicActions(props)
+  const { read, move, remove, rename } = useComicActions(props)
   const others = groups.filter((g) => g.id !== comic.groupId)
 
   return (
@@ -156,6 +162,10 @@ function ComicRow(props: ComicProps) {
               <Icon name="grid-3x3-gap" className="me-2" />
               View Pages
             </Dropdown.Item>
+            <Dropdown.Item onClick={rename.open}>
+              <Icon name="pencil" className="me-2" />
+              Rename Comic
+            </Dropdown.Item>
             {others.length > 0 && (
               <>
                 <Dropdown.Divider />
@@ -175,6 +185,7 @@ function ComicRow(props: ComicProps) {
             </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
+        {rename.modal}
       </td>
     </tr>
   )
@@ -210,7 +221,7 @@ function GroupView({ group, comics, groups, reload }: { group: Group; comics: Co
           {view === 'tiles' ? (
             <div className="row">
               {comics.map((c) => (
-                <ComicCard key={c.id} comic={c} groups={groups} onRemoved={reload} />
+                <ComicCard key={c.id} comic={c} groups={groups} onChanged={reload} />
               ))}
             </div>
           ) : (
@@ -226,7 +237,7 @@ function GroupView({ group, comics, groups, reload }: { group: Group; comics: Co
               </thead>
               <tbody>
                 {comics.map((c) => (
-                  <ComicRow key={c.id} comic={c} groups={groups} onRemoved={reload} />
+                  <ComicRow key={c.id} comic={c} groups={groups} onChanged={reload} />
                 ))}
               </tbody>
             </Table>

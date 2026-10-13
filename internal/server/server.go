@@ -55,6 +55,7 @@ func (s *Server) Handler() http.Handler {
 	user("POST /api/comics", s.handleUploadComic)
 	user("DELETE /api/comics/read", s.handleDeleteReadComics)
 	user("GET /api/comics/{id}", s.handleGetComic)
+	user("PATCH /api/comics/{id}", s.handleRenameComic)
 	user("DELETE /api/comics/{id}", s.handleDeleteComic)
 	user("PUT /api/comics/{id}/group", s.handleMoveComic)
 	user("PUT /api/comics/{id}/finish", s.handleFinishComic)

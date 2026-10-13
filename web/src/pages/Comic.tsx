@@ -1,18 +1,15 @@
 import { Nav, NavDropdown } from 'react-bootstrap'
 import { Link, NavLink, useNavigate, useParams } from 'react-router'
-import { api, errorMessage } from '../api'
+import { api, errorMessage, type ComicDetail } from '../api'
 import { useFlash } from '../context'
 import Layout from '../components/Layout'
 import { Icon, LoadError, Spinner, Thumb, useLoad } from '../components/Common'
+import { useRenameComic } from '../components/RenameComic'
 
-export default function ComicPage() {
-  const id = Number(useParams().id)
+function ComicView({ comic, reload }: { comic: ComicDetail; reload: () => void }) {
   const flash = useFlash()
   const navigate = useNavigate()
-  const { data: comic, error } = useLoad(() => api.comic(id), [id])
-
-  if (error) return <Layout><LoadError error={error} /></Layout>
-  if (!comic) return <Layout><Spinner /></Layout>
+  const rename = useRenameComic(comic, reload)
 
   const remove = async () => {
     if (!window.confirm('Delete comic?')) return
@@ -40,6 +37,11 @@ export default function ComicPage() {
           </>
         }
       >
+        <NavDropdown.Item onClick={rename.open}>
+          <Icon name="pencil" className="me-2" />
+          Rename Comic
+        </NavDropdown.Item>
+        <NavDropdown.Divider />
         <NavDropdown.Item onClick={remove} className="text-danger">
           <Icon name="trash" className="me-2" />
           Delete Comic
@@ -60,6 +62,16 @@ export default function ComicPage() {
           </div>
         ))}
       </div>
+      {rename.modal}
     </Layout>
   )
+}
+
+export default function ComicPage() {
+  const id = Number(useParams().id)
+  const { data: comic, error, reload } = useLoad(() => api.comic(id), [id])
+
+  if (error) return <Layout><LoadError error={error} /></Layout>
+  if (!comic) return <Layout><Spinner /></Layout>
+  return <ComicView comic={comic} reload={reload} />
 }

@@ -135,7 +135,6 @@ export default function Groups() {
     )
   else {
     const visible = groups.filter((g) => showEmpty || g.comicCount > 0)
-    const hiddenCount = groups.length - visible.length
     content = (
       <>
         {visible.length > 0 && <ViewToggle view={view} onChange={setView} />}
@@ -171,14 +170,6 @@ export default function Groups() {
               <UploadButton />
             </p>
           </EmptyState>
-        )}
-        {hiddenCount > 0 && (
-          <p className="text-body-secondary small">
-            {hiddenCount} empty {hiddenCount === 1 ? 'group' : 'groups'} hidden.{' '}
-            <a href="#" onClick={(e) => (e.preventDefault(), setShowEmpty(true))}>
-              Show
-            </a>
-          </p>
         )}
       </>
     )

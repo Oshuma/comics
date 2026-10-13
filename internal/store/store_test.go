@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -291,5 +292,45 @@ func TestComicLifecycle(t *testing.T) {
 	s.db.QueryRow(`SELECT (SELECT count(*) FROM pages) + (SELECT count(*) FROM groups) + (SELECT count(*) FROM histories)`).Scan(&n)
 	if n != 0 {
 		t.Fatalf("expected cascade delete, %d rows remain", n)
+	}
+}
+
+func TestRenameComic(t *testing.T) {
+	s, m, _ := newTestStore(t)
+	ctx := context.Background()
+	u := createUser(t, s, "a@example.com")
+	other := createUser(t, s, "b@example.com")
+	g, _ := s.CreateGroup(ctx, u.ID, "Group")
+	c := createComic(t, s, m, u.ID, g.ID, "issue1.CBZ", 1)
+	if err := s.FinishComic(ctx, u.ID, c.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.RenameComic(ctx, u.ID, c.ID, "  Vol. 1  "); err != nil {
+		t.Fatal(err)
+	}
+	d, _ := s.GetComic(ctx, u.ID, c.ID)
+	if d.Filename != "Vol. 1.CBZ" || d.Name != "Vol. 1" {
+		t.Fatalf("after rename: %+v", d.Comic)
+	}
+	history, _, _ := s.ListHistory(ctx, u.ID, 1)
+	if len(history) != 1 || history[0].ComicName != "Vol. 1.CBZ" || history[0].ComicID == nil {
+		t.Fatalf("history not updated: %+v", history)
+	}
+
+	var verr *ValidationError
+	if err := s.RenameComic(ctx, u.ID, c.ID, " "); !errors.As(err, &verr) {
+		t.Fatalf("expected blank name error, got %v", err)
+	}
+	if err := s.RenameComic(ctx, u.ID, c.ID, strings.Repeat("x", 256)); !errors.As(err, &verr) {
+		t.Fatalf("expected long name error, got %v", err)
+	}
+	if err := s.RenameComic(ctx, other.ID, c.ID, "Mine"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected not found for other user, got %v", err)
+	}
+
+	// A name without an archive extension isn't truncated at its last dot.
+	if PrettyName("Vol. 1") != "Vol. 1" || PrettyName("Saga 01.cbr") != "Saga 01" {
+		t.Fatal("unexpected PrettyName result")
 	}
 }

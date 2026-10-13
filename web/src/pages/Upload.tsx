@@ -4,8 +4,7 @@ import { Link, NavLink, useSearchParams } from 'react-router'
 import { api, csrfHeaders, errorMessage, humanSize, type Comic } from '../api'
 import { useFlash } from '../context'
 import Layout from '../components/Layout'
-import { EmptyState, Icon, LoadError, Spinner, useLoad } from '../components/Common'
-import { GroupNameModal } from '../components/GroupMenu'
+import { EmptyState, Icon, LoadError, NameModal, Spinner, useLoad } from '../components/Common'
 
 const PARALLEL_UPLOADS = 3
 
@@ -300,7 +299,13 @@ export default function Upload() {
         </div>
       </div>
 
-      <GroupNameModal show={creating} title="New Group" onHide={() => setCreating(false)} onSave={createGroup} />
+      <NameModal
+        show={creating}
+        title="New Group"
+        placeholder="Group name..."
+        onHide={() => setCreating(false)}
+        onSave={createGroup}
+      />
     </Layout>
   )
 }

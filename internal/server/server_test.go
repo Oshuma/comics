@@ -146,6 +146,18 @@ func TestUploadAndRead(t *testing.T) {
 		t.Fatalf("finish: %d %+v", code, finish)
 	}
 
+	path = "/api/comics/" + strconv.Itoa(comic.ID)
+	if code := c.json("PATCH", path, map[string]string{"name": "Saga #1"}, nil); code != http.StatusOK {
+		t.Fatalf("rename: %d", code)
+	}
+	if code := c.json("PATCH", path, map[string]string{"name": " "}, nil); code != http.StatusUnprocessableEntity {
+		t.Fatalf("blank rename: %d", code)
+	}
+	c.do("GET", path, nil, "", &detail)
+	if detail.Name != "Saga #1" || detail.Filename != "Saga #1.cbz" {
+		t.Fatalf("after rename: %+v", detail.Comic)
+	}
+
 	c.do("DELETE", "/api/session", nil, "", nil)
 	if code := c.do("GET", "/api/groups", nil, "", nil); code != http.StatusUnauthorized {
 		t.Fatalf("expected signed out, got %d", code)

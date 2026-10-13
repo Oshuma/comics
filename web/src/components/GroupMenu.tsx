@@ -1,68 +1,9 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Button, Dropdown, Form, Modal } from 'react-bootstrap'
+import { useState } from 'react'
+import { Dropdown } from 'react-bootstrap'
 import { Link } from 'react-router'
 import { api, errorMessage, type Group } from '../api'
 import { useFlash } from '../context'
-import { Icon } from './Common'
-
-export function GroupNameModal({
-  show,
-  title,
-  initialName = '',
-  onHide,
-  onSave,
-}: {
-  show: boolean
-  title: string
-  initialName?: string
-  onHide: () => void
-  onSave: (name: string) => Promise<void>
-}) {
-  const [name, setName] = useState(initialName)
-  const [saving, setSaving] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (show) setName(initialName)
-  }, [show, initialName])
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await onSave(name)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <Modal show={show} onHide={onHide} size="sm" onEntered={() => inputRef.current?.select()}>
-      <Form onSubmit={submit}>
-        <Modal.Header closeButton>
-          <Modal.Title as="h5">{title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Control
-            ref={inputRef}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Group name..."
-            required
-          />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button type="submit" disabled={saving || !name.trim()}>
-            Save
-          </Button>
-          <Button variant="secondary" onClick={onHide}>
-            Cancel
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
-  )
-}
+import { Icon, NameModal } from './Common'
 
 interface GroupActionsProps {
   group: Group
@@ -142,10 +83,11 @@ export function useGroupMenu({ group, onChanged, onDeleted }: GroupActionsProps)
   )
 
   const modal = (
-    <GroupNameModal
+    <NameModal
       show={editing}
       title={`Edit: ${group.name}`}
       initialName={group.name}
+      placeholder="Group name..."
       onHide={() => setEditing(false)}
       onSave={rename}
     />

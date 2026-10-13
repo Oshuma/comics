@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { Button, ButtonGroup, Pagination as BsPagination } from 'react-bootstrap'
+import { Button, ButtonGroup, Form, Modal, Pagination as BsPagination } from 'react-bootstrap'
 import { errorMessage, pageThumbUrl } from '../api'
 
 export function Spinner() {
@@ -192,5 +192,67 @@ export function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: V
         {option('table', 'Table', 'list-ul')}
       </ButtonGroup>
     </div>
+  )
+}
+
+// Modal with a single name field, e.g. for creating or renaming things.
+export function NameModal({
+  show,
+  title,
+  initialName = '',
+  placeholder = 'Name...',
+  onHide,
+  onSave,
+}: {
+  show: boolean
+  title: string
+  initialName?: string
+  placeholder?: string
+  onHide: () => void
+  onSave: (name: string) => Promise<void>
+}) {
+  const [name, setName] = useState(initialName)
+  const [saving, setSaving] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (show) setName(initialName)
+  }, [show, initialName])
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await onSave(name)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Modal show={show} onHide={onHide} size="sm" onEntered={() => inputRef.current?.select()}>
+      <Form onSubmit={submit}>
+        <Modal.Header closeButton>
+          <Modal.Title as="h5">{title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Control
+            ref={inputRef}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={placeholder}
+            required
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button type="submit" disabled={saving || !name.trim()}>
+            Save
+          </Button>
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Form>
+    </Modal>
   )
 }

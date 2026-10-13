@@ -123,6 +123,24 @@ func (s *Server) handleGetComic(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, comic)
 }
 
+func (s *Server) handleRenameComic(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var req struct {
+		Name string `json:"name"`
+	}
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	if err := s.store.RenameComic(r.Context(), currentUser(r).ID, id, req.Name); err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeOK(w)
+}
+
 func (s *Server) handleDeleteComic(w http.ResponseWriter, r *http.Request) {
 	id, ok := pathID(w, r, "id")
 	if !ok {

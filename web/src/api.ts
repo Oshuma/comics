@@ -140,6 +140,7 @@ export const api = {
   comic: (id: number) => get<ComicDetail>(`/comics/${id}`),
   deleteComic: (id: number) => del<OK>(`/comics/${id}`),
   deleteReadComics: () => del<OK>('/comics/read'),
+  renameComic: (id: number, name: string) => patch<OK>(`/comics/${id}`, { name }),
   moveComic: (id: number, groupId: number) => put<OK>(`/comics/${id}/group`, { groupId }),
   finishComic: (id: number) =>
     put<{ groupId: number; nextComicId: number | null }>(`/comics/${id}/finish`),

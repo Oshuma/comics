@@ -6,6 +6,7 @@ import (
 	"errors"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/Oshuma/comics/internal/media"
 )
@@ -33,9 +34,21 @@ type Page struct {
 	Read   bool `json:"read"`
 }
 
-// PrettyName strips the extension from a comic's filename.
+var archiveExts = map[string]bool{".cbz": true, ".cbr": true, ".zip": true, ".rar": true}
+
+// archiveExt returns the filename's extension if it's an archive type, so
+// names like "Vol. 1" aren't mistaken for having one.
+func archiveExt(filename string) string {
+	ext := filepath.Ext(filename)
+	if archiveExts[strings.ToLower(ext)] {
+		return ext
+	}
+	return ""
+}
+
+// PrettyName strips the archive extension from a comic's filename.
 func PrettyName(filename string) string {
-	return strings.TrimSuffix(filename, filepath.Ext(filename))
+	return strings.TrimSuffix(filename, archiveExt(filename))
 }
 
 // Comics are considered read when none of their pages are unread.
@@ -140,6 +153,48 @@ func (s *Store) CreateComic(ctx context.Context, userID, groupID int, filename, 
 		return nil, err
 	}
 	return c, nil
+}
+
+// RenameComic sets the comic's name, keeping its archive extension. History
+// entries for the comic follow the rename.
+func (s *Store) RenameComic(ctx context.Context, userID, comicID int, name string) error {
+	name = strings.TrimSpace(name)
+	switch {
+	case name == "":
+		return invalid("Name can't be blank")
+	case utf8.RuneCountInString(name) > 255:
+		return invalid("Name is too long (maximum is 255 characters)")
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var oldFilename, groupName string
+	err = tx.QueryRowContext(ctx, `
+		SELECT c.filename, g.name FROM comics c JOIN groups g ON g.id = c.group_id
+		WHERE c.user_id = ? AND c.id = ?`, userID, comicID,
+	).Scan(&oldFilename, &groupName)
+	if err != nil {
+		return notFound(err)
+	}
+	filename := name + archiveExt(oldFilename)
+	if filename == oldFilename {
+		return nil
+	}
+
+	if _, err := tx.ExecContext(ctx, `UPDATE comics SET filename = ? WHERE id = ?`, filename, comicID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE OR IGNORE histories SET comic_name = ?
+		WHERE user_id = ? AND group_name = ? AND comic_name = ?`,
+		filename, userID, groupName, oldFilename); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (s *Store) MoveComic(ctx context.Context, userID, comicID, groupID int) error {
