@@ -1,10 +1,21 @@
 import { useState } from 'react'
-import { Card, Dropdown, NavDropdown } from 'react-bootstrap'
+import { Card, Dropdown, NavDropdown, Table } from 'react-bootstrap'
 import { Link } from 'react-router'
-import { api, errorMessage, type Group } from '../api'
+import { api, errorMessage, humanSize, type Group } from '../api'
 import { useFlash } from '../context'
 import Layout from '../components/Layout'
-import { EmptyState, Icon, LoadError, ReadState, Spinner, Thumb, UploadButton, useLoad } from '../components/Common'
+import {
+  EmptyState,
+  Icon,
+  LoadError,
+  ReadState,
+  Spinner,
+  Thumb,
+  UploadButton,
+  useLoad,
+  useViewMode,
+  ViewToggle,
+} from '../components/Common'
 import { useGroupMenu } from '../components/GroupMenu'
 
 function GroupCard({ group, reload }: { group: Group; reload: () => void }) {
@@ -37,10 +48,43 @@ function GroupCard({ group, reload }: { group: Group; reload: () => void }) {
   )
 }
 
+function GroupRow({ group, reload }: { group: Group; reload: () => void }) {
+  const { items, modal } = useGroupMenu({ group, onChanged: reload, onDeleted: reload })
+  const empty = group.comicCount === 0
+
+  return (
+    <tr>
+      <td className="table-thumb">
+        <Link to={`/groups/${group.id}`}>
+          <Thumb pageId={group.coverPageId} empty={empty} />
+        </Link>
+      </td>
+      <td className="text-break">
+        <Link to={`/groups/${group.id}`} className="table-link">
+          {group.name}
+        </Link>
+      </td>
+      <td className="text-end text-nowrap">{group.comicCount}</td>
+      <td className="text-end text-nowrap d-none d-sm-table-cell">{humanSize(group.diskSize)}</td>
+      <td className="text-center">{!empty && <ReadState read={group.read} reading={group.reading} />}</td>
+      <td className="text-end">
+        <Dropdown align="end">
+          <Dropdown.Toggle variant="outline-secondary" size="sm" aria-label="Manage group">
+            <Icon name="gear" />
+          </Dropdown.Toggle>
+          <Dropdown.Menu>{items}</Dropdown.Menu>
+        </Dropdown>
+        {modal}
+      </td>
+    </tr>
+  )
+}
+
 export default function Groups() {
   const flash = useFlash()
   const { data: groups, error, reload } = useLoad(api.groups, [])
   const [showEmpty, setShowEmpty] = useState(false)
+  const [view, setView] = useViewMode('groups-view')
 
   const removeRead = async () => {
     if (!window.confirm('Remove all read comics?')) return
@@ -94,11 +138,33 @@ export default function Groups() {
     const hiddenCount = groups.length - visible.length
     content = (
       <>
-        <div className="row">
-          {visible.map((g) => (
-            <GroupCard key={g.id} group={g} reload={reload} />
+        {visible.length > 0 && <ViewToggle view={view} onChange={setView} />}
+        {visible.length > 0 &&
+          (view === 'tiles' ? (
+            <div className="row">
+              {visible.map((g) => (
+                <GroupCard key={g.id} group={g} reload={reload} />
+              ))}
+            </div>
+          ) : (
+            <Table hover className="align-middle">
+              <thead>
+                <tr>
+                  <th aria-label="Cover" />
+                  <th>Name</th>
+                  <th className="text-end">Comics</th>
+                  <th className="text-end d-none d-sm-table-cell">Size</th>
+                  <th className="text-center">Status</th>
+                  <th aria-label="Manage" />
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((g) => (
+                  <GroupRow key={g.id} group={g} reload={reload} />
+                ))}
+              </tbody>
+            </Table>
           ))}
-        </div>
         {visible.length === 0 && (
           <EmptyState title="No Comics">
             <p>

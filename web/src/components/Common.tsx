@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { Pagination as BsPagination } from 'react-bootstrap'
+import { Button, ButtonGroup, Pagination as BsPagination } from 'react-bootstrap'
 import { errorMessage, pageThumbUrl } from '../api'
 
 export function Spinner() {
@@ -152,4 +152,45 @@ export function EntriesInfo({ page, total, perPage }: { page: number; total: num
     text = `Displaying entries ${first} - ${last} of ${total} in total`
   }
   return <p className="text-body-secondary">{text}</p>
+}
+
+export type ViewMode = 'tiles' | 'table'
+
+// Tiles/table display mode, remembered per browser under key.
+export function useViewMode(key: string) {
+  const [view, setView] = useState<ViewMode>(() => {
+    try {
+      return localStorage.getItem(key) === 'table' ? 'table' : 'tiles'
+    } catch {
+      return 'tiles'
+    }
+  })
+  const change = useCallback(
+    (v: ViewMode) => {
+      setView(v)
+      try {
+        localStorage.setItem(key, v)
+      } catch {
+        // Not persisted; the choice still applies for this visit.
+      }
+    },
+    [key],
+  )
+  return [view, change] as const
+}
+
+export function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
+  const option = (v: ViewMode, title: string, icon: string) => (
+    <Button variant="outline-secondary" active={view === v} aria-pressed={view === v} onClick={() => onChange(v)} title={title}>
+      <Icon name={icon} />
+    </Button>
+  )
+  return (
+    <div className="d-flex justify-content-end mb-3">
+      <ButtonGroup size="sm" aria-label="Display">
+        {option('tiles', 'Tiles', 'grid-3x3-gap')}
+        {option('table', 'Table', 'list-ul')}
+      </ButtonGroup>
+    </div>
+  )
 }

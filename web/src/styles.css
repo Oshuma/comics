@@ -40,6 +40,49 @@
   font-size: 0.85rem;
 }
 
+/* Small covers in table views. */
+.table-thumb {
+  width: 3rem;
+}
+
+.table-thumb .thumb-img {
+  width: 2.5rem;
+  border-radius: 0.25rem;
+}
+
+.table-thumb .thumb-placeholder {
+  font-size: 1.25rem;
+}
+
+.table-thumb .thumb-placeholder small {
+  display: none;
+}
+
+.table-link {
+  color: var(--bs-emphasis-color);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.table-link:hover,
+.table-link:focus-visible {
+  color: var(--bs-link-hover-color);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* Long menus (e.g. moving a comic between many groups) scroll. */
+.dropdown-menu-scroll {
+  max-height: 60vh;
+  max-width: min(20rem, calc(100vw - 2rem));
+  overflow-y: auto;
+}
+
+.dropdown-menu-scroll .dropdown-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .page-thumb {
   position: relative;
   display: block;
