@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function Layout({ nav, title, children }: Props) {
-  const { user, signOut } = useAuth()
+  const { status, user, signOut } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -72,6 +72,14 @@ export default function Layout({ nav, title, children }: Props) {
                     <Icon name="box-arrow-right" className="me-2" />
                     Sign Out
                   </NavDropdown.Item>
+                  {status?.version && (
+                    <>
+                      <NavDropdown.Divider />
+                      <NavDropdown.ItemText className="small text-body-secondary text-nowrap">
+                        v{status.version.split('+')[0]}
+                      </NavDropdown.ItemText>
+                    </>
+                  )}
                 </NavDropdown>
               </Nav>
             )}

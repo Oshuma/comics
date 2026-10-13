@@ -1,11 +1,13 @@
 import { ListGroup, Nav } from 'react-bootstrap'
 import { Link, NavLink } from 'react-router'
 import { api, humanSize, pluralize } from '../api'
+import { useAuth } from '../context'
 import Layout from '../components/Layout'
 import { Icon, LoadError, Spinner, useLoad } from '../components/Common'
 
 export default function Stats() {
   const { data, error } = useLoad(api.stats, [])
+  const { status } = useAuth()
 
   const nav = (
     <Nav.Link as={NavLink} to="/stats">
@@ -35,6 +37,14 @@ export default function Stats() {
                   <span className="text-nowrap">{humanSize(g.diskSize)}</span>
                 </ListGroup.Item>
               ))}
+            </ListGroup>
+          )}
+          {status?.version && (
+            <ListGroup className="mt-4">
+              <ListGroup.Item className="d-flex justify-content-between gap-2">
+                <strong>Version</strong>
+                <span className="text-body-secondary text-break">v{status.version}</span>
+              </ListGroup.Item>
             </ListGroup>
           )}
         </div>
