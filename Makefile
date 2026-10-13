@@ -7,12 +7,20 @@ BUILD_DIR      ?= build
 OUTPUT         ?= $(BUILD_DIR)/$(BINARY)
 RELEASE_BINARY := $(BINARY)-$(VERSION_TAG)
 
-.PHONY: build release deploy frontend backend dev-backend dev-frontend test clean
+.DEFAULT_GOAL := test
 
-build: frontend backend
+.PHONY: help build release deploy frontend backend dev-backend dev-frontend test clean
 
-# Clean build of a stripped, static binary, after vetting and testing.
-release:
+help: ## Show this help.
+	@awk 'BEGIN { FS = ":.*## " } /^[a-zA-Z_-]+:.*## / { printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+test: ## Run the Go tests and type-check the frontend (default).
+	go test ./...
+	cd web && npm run typecheck
+
+build: frontend backend ## Build the frontend and embed it in build/comics.
+
+release: ## Clean build of build/comics-vX.Y.Z, after vetting and testing.
 	@echo "$(VERSION)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "VERSION must be X.Y.Z, got '$(VERSION)'"; exit 1; }
 	$(MAKE) clean
 	$(MAKE) frontend
@@ -29,23 +37,19 @@ deploy: ## Build a release binary and deploy it to HOST (e.g. `make deploy HOST=
 	scp $(BUILD_DIR)/$(RELEASE_BINARY) $(HOST):.local/bin/$(RELEASE_BINARY)-$(BUILD_SHA)
 	ssh $(HOST) 'ln -sf ~/.local/bin/$(RELEASE_BINARY)-$(BUILD_SHA) ~/.local/bin/$(BINARY) && systemctl --user restart $(BINARY)'
 
-frontend:
+frontend: ## Install frontend dependencies and build web/dist.
 	cd web && npm ci && npm run build
 
-backend:
+backend: ## Build the Go binary with the current web/dist embedded.
 	CGO_ENABLED=0 go build -trimpath -ldflags "-s -w $(LDFLAGS)" -o $(OUTPUT) ./cmd/comics
 
 # Run these in two terminals; Vite proxies /api to the Go server on :3000.
-dev-backend:
+dev-backend: ## Run the Go server on :3000 for development.
 	go run -ldflags "$(LDFLAGS)" ./cmd/comics
 
-dev-frontend:
+dev-frontend: ## Run the Vite dev server with hot reload on :5173.
 	cd web && npm run dev
 
-test:
-	go test ./...
-	cd web && npm run typecheck
-
-clean:
+clean: ## Remove build/ and the built frontend.
 	rm -rf $(BUILD_DIR)
 	find web/dist -mindepth 1 ! -name .keep -delete

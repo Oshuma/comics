@@ -6,6 +6,19 @@
     <meta name="theme-color" content="#212529" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Comics</title>
+    <script>
+      // Apply the saved or system theme before the app loads, to avoid a flash.
+      // Keep in sync with src/theme.ts.
+      ;(function () {
+        var t
+        try {
+          t = localStorage.getItem('theme')
+        } catch (e) {}
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.setAttribute('data-bs-theme', t)
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', t === 'dark' ? '#2b3035' : '#f8f9fa')
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
