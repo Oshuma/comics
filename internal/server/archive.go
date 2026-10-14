@@ -23,7 +23,7 @@ func (s *Server) handleArchiveSearch(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "Enter something to search for.")
 		return
 	}
-	results, err := s.archive.Search(r.Context(), q, pageParam(r))
+	results, err := s.archive.Search(r.Context(), q, pageParam(r), r.URL.Query().Get("sort"))
 	if err != nil {
 		slog.Warn("archive.org search", "q", q, "err", err)
 		writeError(w, http.StatusBadGateway, "Searching archive.org failed. Try again in a moment.")

@@ -102,8 +102,51 @@ func (c *Client) checkRedirect(req *http.Request, via []*http.Request) error {
 	return nil
 }
 
-// Search finds items containing CBR/CBZ files and lists those files.
-func (c *Client) Search(ctx context.Context, query string, page int) (*Results, error) {
+// Sort orders for Search, mapped to archive.org sort fields. Relevance (the
+// default) sends no sort.
+var sorts = map[string]string{
+	"downloads": "downloads desc",
+	"newest":    "addeddate desc",
+	"title":     "titleSorter asc",
+}
+
+// fieldSyntax matches a Lucene field query like creator:"Frank Miller" or
+// title:batman (but not "Batman: Year One").
+var fieldSyntax = regexp.MustCompile(`(^|[\s(])[A-Za-z_][\w.-]*:[^\s]`)
+
+// BuildQuery turns a user's search into an archive.org query for comic
+// archives. Plain text is matched against titles, subjects and creators
+// (weighted toward titles) rather than the full text of items, which
+// includes OCR text and reviews. Queries using field syntax are passed
+// through as written.
+func BuildQuery(query string) string {
+	const formats = `format:("Comic Book ZIP" OR "Comic Book RAR")`
+	if fieldSyntax.MatchString(query) {
+		return "(" + query + ") AND " + formats
+	}
+	q := escapeQuery(query)
+	return "(title:(" + q + ")^5 OR subject:(" + q + ")^2 OR creator:(" + q + ")) AND " + formats
+}
+
+// escapeQuery escapes Lucene syntax in plain text, keeping balanced double
+// quotes so phrases still work.
+func escapeQuery(s string) string {
+	keepQuotes := strings.Count(s, `"`)%2 == 0
+	var b strings.Builder
+	for _, r := range s {
+		switch {
+		case r == '"' && keepQuotes:
+		case strings.ContainsRune(`+-&|!(){}[]^"~*?:\/`, r):
+			b.WriteByte('\\')
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
+}
+
+// Search finds items containing CBR/CBZ files and lists those files. sort is
+// "downloads", "newest", "title", or anything else for relevance.
+func (c *Client) Search(ctx context.Context, query string, page int, sort string) (*Results, error) {
 	query = strings.TrimSpace(query)
 	if query == "" {
 		return nil, errors.New("search query is empty")
@@ -111,11 +154,14 @@ func (c *Client) Search(ctx context.Context, query string, page int) (*Results, 
 	page = min(max(page, 1), maxPage)
 
 	q := url.Values{
-		"q":      {"(" + query + `) AND format:("Comic Book ZIP" OR "Comic Book RAR")`},
+		"q":      {BuildQuery(query)},
 		"fl[]":   {"identifier", "title"},
 		"rows":   {strconv.Itoa(PerPage)},
 		"page":   {strconv.Itoa(page)},
 		"output": {"json"},
+	}
+	if s, ok := sorts[sort]; ok {
+		q.Set("sort[]", s)
 	}
 	var resp struct {
 		Response struct {

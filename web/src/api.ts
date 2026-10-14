@@ -56,6 +56,8 @@ export interface ArchiveFile {
   size: number
 }
 
+export type ArchiveSort = 'relevance' | 'downloads' | 'newest' | 'title'
+
 export interface ArchiveResults {
   files: ArchiveFile[]
   totalItems: number
@@ -184,8 +186,8 @@ export const api = {
   comic: (id: number) => get<ComicDetail>(`/comics/${id}`),
   deleteComic: (id: number) => del<OK>(`/comics/${id}`),
   deleteReadComics: () => del<OK>('/comics/read'),
-  archiveSearch: (q: string, page: number) =>
-    get<ArchiveResults>(`/archive/search?q=${encodeURIComponent(q)}&page=${page}`),
+  archiveSearch: (q: string, page: number, sort: ArchiveSort) =>
+    get<ArchiveResults>(`/archive/search?${new URLSearchParams({ q, page: String(page), sort })}`),
   archiveImport: (file: ArchiveFile, groupId: number) =>
     post<ImportJob>('/archive/import', { identifier: file.identifier, name: file.name, groupId }),
   imports: () => get<ImportJob[]>('/imports'),

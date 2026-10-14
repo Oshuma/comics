@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -23,15 +24,19 @@ const fakeMetadata = `{
 	]
 }`
 
+// The query parameters of the last search the fake archive received.
+var lastSearch atomic.Value
+
+func searchParam(name string) string {
+	return lastSearch.Load().(url.Values).Get(name)
+}
+
 func fakeArchive(t *testing.T) (*Client, *atomic.Int32) {
 	t.Helper()
 	var metadataCalls atomic.Int32
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /advancedsearch.php", func(w http.ResponseWriter, r *http.Request) {
-		q := r.URL.Query().Get("q")
-		if !strings.Contains(q, "(batman)") || !strings.Contains(q, `format:("Comic Book ZIP" OR "Comic Book RAR")`) {
-			t.Errorf("unexpected query %q", q)
-		}
+		lastSearch.Store(r.URL.Query())
 		w.Write([]byte(`{"response": {"numFound": 2, "docs": [
 			{"identifier": "batman-collection", "title": "Batman Collection"},
 			{"identifier": "missing-item", "title": "Gone"}
@@ -65,9 +70,15 @@ func fakeArchive(t *testing.T) (*Client, *atomic.Int32) {
 
 func TestSearch(t *testing.T) {
 	c, metadataCalls := fakeArchive(t)
-	res, err := c.Search(context.Background(), " batman ", 1)
+	res, err := c.Search(context.Background(), " batman ", 1, "")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if q := searchParam("q"); q != BuildQuery("batman") {
+		t.Fatalf("unexpected query %q", q)
+	}
+	if s := searchParam("sort[]"); s != "" {
+		t.Fatalf("relevance search sent sort %q", s)
 	}
 	if res.TotalItems != 2 || res.Page != 1 || res.PerPage != PerPage {
 		t.Fatalf("unexpected paging: %+v", res)
@@ -94,7 +105,7 @@ func TestSearch(t *testing.T) {
 		t.Fatal("expected cached metadata to be reused")
 	}
 
-	if _, err := c.Search(context.Background(), "  ", 1); err == nil {
+	if _, err := c.Search(context.Background(), "  ", 1, ""); err == nil {
 		t.Fatal("expected empty query to fail")
 	}
 }
@@ -152,7 +163,7 @@ func TestLive(t *testing.T) {
 	}
 	c := New(DefaultBaseURL, "comics-test (+https://github.com/Oshuma/comics)")
 	ctx := context.Background()
-	res, err := c.Search(ctx, "batman", 1)
+	res, err := c.Search(ctx, "batman year one", 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,4 +194,43 @@ type countingWriter int64
 func (w *countingWriter) Write(p []byte) (int, error) {
 	*w += countingWriter(len(p))
 	return len(p), nil
+}
+
+func TestSearchSort(t *testing.T) {
+	c, _ := fakeArchive(t)
+	for sort, want := range map[string]string{
+		"downloads": "downloads desc",
+		"newest":    "addeddate desc",
+		"title":     "titleSorter asc",
+		"relevance": "",
+		"bogus":     "",
+	} {
+		if _, err := c.Search(context.Background(), "batman", 1, sort); err != nil {
+			t.Fatal(err)
+		}
+		if got := searchParam("sort[]"); got != want {
+			t.Errorf("sort %q: sent %q, want %q", sort, got, want)
+		}
+	}
+}
+
+func TestBuildQuery(t *testing.T) {
+	const formats = ` AND format:("Comic Book ZIP" OR "Comic Book RAR")`
+	weighted := func(q string) string {
+		return "(title:(" + q + ")^5 OR subject:(" + q + ")^2 OR creator:(" + q + "))" + formats
+	}
+	for in, want := range map[string]string{
+		"batman year one":                  weighted("batman year one"),
+		"Batman: Year One":                 weighted(`Batman\: Year One`),
+		"Spider-Man (2018) #1":             weighted(`Spider\-Man \(2018\) #1`),
+		`"year one" batman`:                weighted(`"year one" batman`),
+		`batman "year one`:                 weighted(`batman \"year one`),
+		`creator:"Frank Miller"`:           `(creator:"Frank Miller")` + formats,
+		`batman AND collection:comics`:     `(batman AND collection:comics)` + formats,
+		`(title:batman OR title:superman)`: `((title:batman OR title:superman))` + formats,
+	} {
+		if got := BuildQuery(in); got != want {
+			t.Errorf("BuildQuery(%q)\n got: %s\nwant: %s", in, got, want)
+		}
+	}
 }

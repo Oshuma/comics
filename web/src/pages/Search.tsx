@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Button, Form, InputGroup, Table } from 'react-bootstrap'
 import { Link, useSearchParams } from 'react-router'
-import { api, errorMessage, humanSize, type ArchiveFile, type ArchiveResults, type ImportJob } from '../api'
+import {
+  api,
+  errorMessage,
+  humanSize,
+  type ArchiveFile,
+  type ArchiveResults,
+  type ArchiveSort,
+  type ImportJob,
+} from '../api'
 import { useFlash } from '../context'
 import Layout from '../components/Layout'
 import { EmptyState, Icon, LoadError, NameModal, Pagination, Spinner, useLoad } from '../components/Common'
@@ -84,18 +92,31 @@ function ImportButton({
   )
 }
 
+const sortLabels: Record<ArchiveSort, string> = {
+  relevance: 'Relevance',
+  downloads: 'Most downloaded',
+  newest: 'Newest',
+  title: 'Title',
+}
+
+const isSort = (s: string | null): s is ArchiveSort => !!s && s in sortLabels
+
 function Results({
   results,
   imports,
   groupId,
+  sort,
   onImport,
   onPage,
+  onSort,
 }: {
   results: ArchiveResults
   imports: Record<string, ImportState>
   groupId: string
+  sort: ArchiveSort
   onImport: (f: ArchiveFile) => void
   onPage: (page: number) => void
+  onSort: (sort: ArchiveSort) => void
 }) {
   if (results.files.length === 0) {
     return <EmptyState title="No Comics Found" />
@@ -103,10 +124,22 @@ function Results({
   const pages = Math.ceil(results.totalItems / results.perPage)
   return (
     <>
-      <p className="text-body-secondary small">
-        {results.totalItems} matching {results.totalItems === 1 ? 'item' : 'items'} on archive.org
-        {pages > 1 && ` · page ${results.page} of ${pages}`}
-      </p>
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <span className="text-body-secondary small">
+          {results.totalItems} matching {results.totalItems === 1 ? 'item' : 'items'} on archive.org
+          {pages > 1 && ` · page ${results.page} of ${pages}`}
+        </span>
+        <InputGroup size="sm" className="w-auto">
+          <InputGroup.Text>Sort</InputGroup.Text>
+          <Form.Select value={sort} onChange={(e) => onSort(e.target.value as ArchiveSort)} aria-label="Sort results">
+            {Object.entries(sortLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Form.Select>
+        </InputGroup>
+      </div>
       <Table hover className="align-middle">
         <thead>
           <tr>
@@ -170,6 +203,8 @@ export default function Search() {
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const page = Number(params.get('page')) || 1
+  const sortParam = params.get('sort')
+  const sort: ArchiveSort = isSort(sortParam) ? sortParam : 'relevance'
   const [input, setInput] = useState(q)
   const [groupId, setGroupId] = useState('')
   const [creating, setCreating] = useState(false)
@@ -178,12 +213,16 @@ export default function Search() {
   const { jobs, refresh: refreshImports } = useImports()
   const { data: groups, reload: reloadGroups } = useLoad(api.groups, [])
   // Tagged with the search it's for, so stale results aren't shown while a new search loads.
-  const searchKey = `${page}:${q}`
+  const searchKey = `${page}:${sort}:${q}`
   const { data, error } = useLoad(
-    async () => ({ key: searchKey, results: q ? await api.archiveSearch(q, page) : null }),
+    async () => ({ key: searchKey, results: q ? await api.archiveSearch(q, page, sort) : null }),
     [searchKey],
   )
   const results = data?.key === searchKey ? data.results : null
+
+  // Updates the URL; the first page and relevance sort are left out.
+  const go = (query: string, p: number, s: ArchiveSort) =>
+    setParams({ q: query, ...(p > 1 && { page: String(p) }), ...(s !== 'relevance' && { sort: s }) })
 
   // Start fresh with no group when the search is cleared, e.g. from the navbar icon.
   useEffect(() => {
@@ -196,7 +235,7 @@ export default function Search() {
   const search = (e: FormEvent) => {
     e.preventDefault()
     const query = input.trim()
-    if (query) setParams({ q: query })
+    if (query) go(query, 1, sort)
   }
 
   // Each file's import state: a pending request wins, otherwise its latest job.
@@ -254,7 +293,9 @@ export default function Search() {
         imports={imports}
         groupId={selectedGroup}
         onImport={importFile}
-        onPage={(p) => setParams({ q, page: String(p) })}
+        sort={sort}
+        onPage={(p) => go(q, p, sort)}
+        onSort={(s) => go(q, 1, s)}
       />
     )
   }
