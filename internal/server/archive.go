@@ -4,11 +4,11 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/Oshuma/comics/internal/archiveorg"
+	"github.com/Oshuma/comics/internal/importer"
+	"github.com/Oshuma/comics/internal/store"
 )
 
 type archiveSearchResponse struct {
@@ -32,8 +32,8 @@ func (s *Server) handleArchiveSearch(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, archiveSearchResponse{Results: results, MaxBytes: s.cfg.MaxUploadMB << 20})
 }
 
-// handleArchiveImport downloads a CBR/CBZ file from archive.org and adds it
-// to a group, the same way as an upload.
+// handleArchiveImport queues a CBR/CBZ file on archive.org to be downloaded
+// and added to a group in the background.
 func (s *Server) handleArchiveImport(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Identifier string `json:"identifier"`
@@ -71,32 +71,57 @@ func (s *Server) handleArchiveImport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpDir, err := s.media.TempDir()
+	job, err := s.store.CreateImport(r.Context(), store.NewImport{
+		UserID: userID, GroupID: groupID, Filename: path.Base(file.Name), Source: store.SourceArchive,
+		ArchiveIdentifier: file.Identifier, ArchiveName: file.Name,
+	})
 	if err != nil {
 		writeStoreError(w, err)
 		return
 	}
-	defer os.RemoveAll(tmpDir)
+	s.importer.Notify()
+	writeJSON(w, http.StatusAccepted, job)
+}
 
-	archivePath := filepath.Join(tmpDir, "archive")
-	out, err := os.Create(archivePath)
+type importView struct {
+	store.Import
+	// Set while the job is being processed.
+	Progress *importer.Progress `json:"progress,omitempty"`
+}
+
+func (s *Server) handleListImports(w http.ResponseWriter, r *http.Request) {
+	jobs, err := s.store.ListImports(r.Context(), currentUser(r).ID)
 	if err != nil {
 		writeStoreError(w, err)
 		return
 	}
-	err = s.archive.Download(r.Context(), file, out, maxBytes)
-	if cerr := out.Close(); err == nil {
-		err = cerr
+	views := make([]importView, len(jobs))
+	for i, j := range jobs {
+		views[i].Import = j
+		if p, ok := s.importer.Progress(j.ID); ok && j.Status == store.ImportProcessing {
+			views[i].Progress = &p
+		}
 	}
-	if errors.Is(err, archiveorg.ErrTooLarge) {
-		writeError(w, http.StatusRequestEntityTooLarge, "File is too large.")
-		return
-	}
-	if err != nil {
-		slog.Warn("archive.org download", "identifier", file.Identifier, "file", file.Name, "err", err)
-		writeError(w, http.StatusBadGateway, "Downloading from archive.org failed. Try again in a moment.")
-		return
-	}
+	writeJSON(w, http.StatusOK, views)
+}
 
-	s.importArchive(w, r, userID, groupID, path.Base(file.Name), tmpDir, archivePath)
+// handleDeleteImport cancels a queued or running job, or dismisses a
+// finished one.
+func (s *Server) handleDeleteImport(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	job, err := s.store.DeleteImport(r.Context(), currentUser(r).ID, id)
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	s.importer.Cancel(job.ID)
+	if job.UploadPath != "" {
+		if err := s.media.RemoveSpool(job.UploadPath); err != nil {
+			slog.Warn("removing spooled upload", "import", job.ID, "err", err)
+		}
+	}
+	writeOK(w)
 }

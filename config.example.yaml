@@ -15,5 +15,9 @@ storage_dir: "storage"
 # Maximum size of a single uploaded archive, in MB.
 max_upload_mb: 2048
 
+# How many uploads/imports are extracted (or downloaded) at the same time in
+# the background. Others wait in a queue.
+import_workers: 2
+
 # Set to true when serving over HTTPS.
 secure_cookies: false

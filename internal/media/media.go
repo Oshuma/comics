@@ -4,6 +4,9 @@
 //
 //	comics/<comic id>/0001.jpg
 //	comics/<comic id>/thumbs/0001.jpg
+//
+// Uploads waiting to be imported are kept in imports/, and scratch files in
+// tmp/.
 package media
 
 import (
@@ -60,6 +63,52 @@ func (s *Storage) TempDir() (string, error) {
 		return "", err
 	}
 	return os.MkdirTemp(base, "upload-")
+}
+
+func (s *Storage) spoolRoot() string {
+	return filepath.Join(s.root, "imports")
+}
+
+// SpoolDir creates a directory for an upload waiting to be imported. Unlike
+// TempDir, it survives restarts.
+func (s *Storage) SpoolDir() (string, error) {
+	if err := os.MkdirAll(s.spoolRoot(), 0o755); err != nil {
+		return "", err
+	}
+	return os.MkdirTemp(s.spoolRoot(), "upload-")
+}
+
+// RemoveSpool deletes the spool directory holding path.
+func (s *Storage) RemoveSpool(path string) error {
+	dir := filepath.Dir(path)
+	if filepath.Dir(dir) != s.spoolRoot() {
+		return fmt.Errorf("not a spool path: %s", path)
+	}
+	return os.RemoveAll(dir)
+}
+
+// CleanSpool removes spool directories that don't hold one of keep.
+func (s *Storage) CleanSpool(keep map[string]bool) error {
+	entries, err := os.ReadDir(s.spoolRoot())
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	needed := map[string]bool{}
+	for p := range keep {
+		needed[filepath.Dir(p)] = true
+	}
+	for _, e := range entries {
+		dir := filepath.Join(s.spoolRoot(), e.Name())
+		if !needed[dir] {
+			if err := os.RemoveAll(dir); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (s *Storage) comicDir(comicID int) string {

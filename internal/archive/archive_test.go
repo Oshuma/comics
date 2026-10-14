@@ -2,6 +2,7 @@ package archive
 
 import (
 	"archive/zip"
+	"bytes"
 	"os"
 	"path/filepath"
 	"sort"
@@ -36,7 +37,7 @@ func TestExtractZip(t *testing.T) {
 
 	out := filepath.Join(dir, "out")
 	os.Mkdir(out, 0o755)
-	entries, err := Extract(src, out)
+	entries, err := Extract(src, out, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +62,37 @@ func TestExtractZip(t *testing.T) {
 func TestExtractUnsupported(t *testing.T) {
 	src := filepath.Join(t.TempDir(), "x.cbz")
 	os.WriteFile(src, []byte("not an archive"), 0o644)
-	if _, err := Extract(src, t.TempDir()); err != ErrUnsupported {
+	if _, err := Extract(src, t.TempDir(), nil); err != ErrUnsupported {
 		t.Fatalf("got %v, want ErrUnsupported", err)
+	}
+}
+
+func TestExtractProgress(t *testing.T) {
+	dir := t.TempDir()
+	src := filepath.Join(dir, "comic.cbz")
+	f, _ := os.Create(src)
+	zw := zip.NewWriter(f)
+	for _, name := range []string{"1.jpg", "dir/", "2.jpg", "3.jpg"} {
+		w, _ := zw.Create(name)
+		w.Write(bytes.Repeat([]byte(name), 1000))
+	}
+	zw.Close()
+	f.Close()
+
+	var calls [][2]int64
+	if _, err := Extract(src, t.TempDir(), func(done, total int64) { calls = append(calls, [2]int64{done, total}) }); err != nil {
+		t.Fatal(err)
+	}
+	if len(calls) < 3 || calls[0][0] != 0 {
+		t.Fatalf("unexpected progress calls: %v", calls)
+	}
+	last := calls[len(calls)-1]
+	if last[0] != last[1] || last[1] == 0 {
+		t.Fatalf("progress didn't finish at 100%%: %v", calls)
+	}
+	for i := 1; i < len(calls); i++ {
+		if calls[i][0] < calls[i-1][0] || calls[i][1] != last[1] {
+			t.Fatalf("progress went backwards or total changed: %v", calls)
+		}
 	}
 }

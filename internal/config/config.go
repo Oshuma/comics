@@ -21,6 +21,8 @@ type Config struct {
 	StorageDir string `yaml:"storage_dir"`
 	// Maximum upload size per comic archive, in megabytes.
 	MaxUploadMB int64 `yaml:"max_upload_mb"`
+	// Number of uploads/imports processed at the same time in the background.
+	ImportWorkers int `yaml:"import_workers"`
 	// Set the Secure flag on session cookies (enable when served over HTTPS).
 	SecureCookies bool `yaml:"secure_cookies"`
 
@@ -30,10 +32,11 @@ type Config struct {
 
 func defaults() Config {
 	return Config{
-		Listen:       ":3000",
-		DatabasePath: "comics.db",
-		StorageDir:   "storage",
-		MaxUploadMB:  2048,
+		Listen:        ":3000",
+		DatabasePath:  "comics.db",
+		StorageDir:    "storage",
+		MaxUploadMB:   2048,
+		ImportWorkers: 2,
 	}
 }
 
@@ -91,6 +94,9 @@ func Load(explicitPath string) (*Config, error) {
 
 	if cfg.MaxUploadMB <= 0 {
 		cfg.MaxUploadMB = defaults().MaxUploadMB
+	}
+	if cfg.ImportWorkers <= 0 {
+		cfg.ImportWorkers = defaults().ImportWorkers
 	}
 
 	return &cfg, nil

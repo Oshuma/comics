@@ -117,11 +117,6 @@
   background: var(--bs-primary-bg-subtle);
 }
 
-.drop-zone.is-disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 /* Reader */
 .reader {
   min-height: 100vh;
@@ -139,4 +134,13 @@
   touch-action: pan-y pinch-zoom;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+/* Navbar menu of imports in progress. */
+.imports-menu .dropdown-menu {
+  width: min(22rem, calc(100vw - 2rem));
+}
+
+.import-progress {
+  height: 0.5rem;
 }

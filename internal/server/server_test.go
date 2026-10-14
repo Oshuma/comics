@@ -12,22 +12,27 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"github.com/Oshuma/comics/internal/archiveorg"
 	"github.com/Oshuma/comics/internal/config"
 	"github.com/Oshuma/comics/internal/database"
+	"github.com/Oshuma/comics/internal/importer"
 	"github.com/Oshuma/comics/internal/media"
 	"github.com/Oshuma/comics/internal/store"
 )
 
 type client struct {
-	t    *testing.T
-	http *http.Client
-	base string
+	t       *testing.T
+	http    *http.Client
+	base    string
+	storage string
 }
 
 func (c *client) do(method, path string, body io.Reader, contentType string, out any) int {
@@ -76,12 +81,53 @@ func newTestServerWithArchive(t *testing.T, archiveURL string) *client {
 		t.Fatal(err)
 	}
 	cfg := &config.Config{MaxUploadMB: 10}
+	st := store.New(db, m)
+	archive := archiveorg.New(archiveURL, "comics-test")
+	imp := importer.New(st, m, archive, cfg.MaxUploadMB<<20, 2)
+	impCtx, stopImporter := context.WithCancel(context.Background())
+	if err := imp.Start(impCtx); err != nil {
+		t.Fatal(err)
+	}
 	static := fstest.MapFS{"index.html": {Data: []byte("<html></html>")}}
-	ts := httptest.NewServer(New(cfg, store.New(db, m), m, static, archiveorg.New(archiveURL, "comics-test"), "1.2.3+abc").Handler())
-	t.Cleanup(ts.Close)
+	ts := httptest.NewServer(New(cfg, st, m, static, archive, imp, "1.2.3+abc").Handler())
+	t.Cleanup(func() {
+		ts.Close()
+		stopImporter()
+		imp.Wait()
+	})
 
 	jar, _ := cookiejar.New(nil)
-	return &client{t: t, http: &http.Client{Jar: jar}, base: ts.URL}
+	return &client{t: t, http: &http.Client{Jar: jar}, base: ts.URL, storage: filepath.Join(dir, "storage")}
+}
+
+// waitImport polls until a queued import finishes, and returns it.
+func (c *client) waitImport(id int) store.Import {
+	c.t.Helper()
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		var jobs []store.Import
+		c.do("GET", "/api/imports", nil, "", &jobs)
+		for _, j := range jobs {
+			if j.ID == id && (j.Status == store.ImportDone || j.Status == store.ImportFailed) {
+				return j
+			}
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	c.t.Fatalf("import %d didn't finish", id)
+	return store.Import{}
+}
+
+// importedComic waits for an import to succeed and returns its comic.
+func (c *client) importedComic(id int) store.ComicDetail {
+	c.t.Helper()
+	job := c.waitImport(id)
+	if job.Status != store.ImportDone || job.ComicID == nil {
+		c.t.Fatalf("import failed: %+v", job)
+	}
+	var comic store.ComicDetail
+	c.do("GET", "/api/comics/"+strconv.Itoa(*job.ComicID), nil, "", &comic)
+	return comic
 }
 
 func cbz(t *testing.T, pages int) []byte {
@@ -120,10 +166,14 @@ func TestUploadAndRead(t *testing.T) {
 	fw, _ := mw.CreateFormFile("comic", "Saga 01.cbz")
 	fw.Write(cbz(t, 2))
 	mw.Close()
-	var comic store.Comic
-	if code := c.do("POST", "/api/comics", &body, mw.FormDataContentType(), &comic); code != http.StatusCreated {
+	var job store.Import
+	if code := c.do("POST", "/api/comics", &body, mw.FormDataContentType(), &job); code != http.StatusAccepted {
 		t.Fatalf("upload: %d", code)
 	}
+	if job.Status != store.ImportQueued || job.Source != store.SourceUpload || job.GroupName != "Saga" {
+		t.Fatalf("unexpected job: %+v", job)
+	}
+	comic := c.importedComic(job.ID)
 	if comic.Name != "Saga 01" || comic.PageCount != 2 {
 		t.Fatalf("unexpected comic: %+v", comic)
 	}
@@ -167,5 +217,70 @@ func TestUploadAndRead(t *testing.T) {
 	c.do("DELETE", "/api/session", nil, "", nil)
 	if code := c.do("GET", "/api/groups", nil, "", nil); code != http.StatusUnauthorized {
 		t.Fatalf("expected signed out, got %d", code)
+	}
+}
+
+func (c *client) upload(groupName, filename string, data []byte, out any) int {
+	c.t.Helper()
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	if groupName != "" {
+		mw.WriteField("group_name", groupName)
+	}
+	fw, _ := mw.CreateFormFile("comic", filename)
+	fw.Write(data)
+	mw.Close()
+	return c.do("POST", "/api/comics", &body, mw.FormDataContentType(), out)
+}
+
+func TestImportJobs(t *testing.T) {
+	c := newTestServer(t)
+	user := map[string]string{"email": "admin@example.com", "password": "password1", "passwordConfirmation": "password1"}
+	c.json("POST", "/api/setup", user, nil)
+
+	var ok, broken store.Import
+	c.upload("Saga", "Saga 01.cbz", cbz(t, 1), &ok)
+	c.upload("Saga", "Notes.cbz", []byte("not an archive"), &broken)
+	c.importedComic(ok.ID)
+	if j := c.waitImport(broken.ID); j.Status != store.ImportFailed || !strings.Contains(j.Error, "Unsupported file type") {
+		t.Fatalf("broken upload: %+v", j)
+	}
+
+	// Rejected before queueing: nothing is left in the spool.
+	var res struct{ Error string }
+	if code := c.upload("", "x.cbz", cbz(t, 1), &res); code != http.StatusUnprocessableEntity || !strings.Contains(res.Error, "select a group") {
+		t.Fatalf("upload without group: %d %q", code, res.Error)
+	}
+	if entries, _ := os.ReadDir(filepath.Join(c.storage, "imports")); len(entries) != 0 {
+		t.Fatalf("spool not cleaned up: %v", entries)
+	}
+
+	var jobs []store.Import
+	c.do("GET", "/api/imports", nil, "", &jobs)
+	if len(jobs) != 2 || jobs[0].ID != broken.ID {
+		t.Fatalf("list: %+v", jobs)
+	}
+
+	// Another user can't see or delete them.
+	other := map[string]string{"email": "b@example.com", "password": "password1", "passwordConfirmation": "password1"}
+	c.json("POST", "/api/admin/users", other, nil)
+	c.do("DELETE", "/api/session", nil, "", nil)
+	c.json("POST", "/api/session", map[string]string{"email": "b@example.com", "password": "password1"}, nil)
+	c.do("GET", "/api/imports", nil, "", &jobs)
+	if len(jobs) != 0 {
+		t.Fatalf("other user sees jobs: %+v", jobs)
+	}
+	if code := c.do("DELETE", "/api/imports/"+strconv.Itoa(broken.ID), nil, "", nil); code != http.StatusNotFound {
+		t.Fatalf("other user deleted a job: %d", code)
+	}
+
+	c.do("DELETE", "/api/session", nil, "", nil)
+	c.json("POST", "/api/session", map[string]string{"email": "admin@example.com", "password": "password1"}, nil)
+	if code := c.do("DELETE", "/api/imports/"+strconv.Itoa(broken.ID), nil, "", nil); code != http.StatusOK {
+		t.Fatalf("dismiss: %d", code)
+	}
+	c.do("GET", "/api/imports", nil, "", &jobs)
+	if len(jobs) != 1 || jobs[0].ID != ok.ID {
+		t.Fatalf("after dismiss: %+v", jobs)
 	}
 }

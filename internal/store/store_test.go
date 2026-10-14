@@ -73,7 +73,7 @@ func createComic(t *testing.T, s *Store, m *media.Storage, userID, groupID int, 
 
 	dir := filepath.Join(tmp, "pages")
 	os.Mkdir(dir, 0o755)
-	entries, err := archive.Extract(archivePath, dir)
+	entries, err := archive.Extract(archivePath, dir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -12,13 +11,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Oshuma/comics/internal/archive"
-	"github.com/Oshuma/comics/internal/media"
+	"github.com/Oshuma/comics/internal/store"
 )
 
 // handleUploadComic accepts a multipart upload with a "comic" archive and
 // either "group_id" or "group_name" (which come before the file part).
-// The archive is streamed to disk rather than buffered in memory.
+// The archive is streamed to disk and queued for a background import.
 func (s *Server) handleUploadComic(w http.ResponseWriter, r *http.Request) {
 	userID := currentUser(r).ID
 	r.Body = http.MaxBytesReader(w, r.Body, s.cfg.MaxUploadMB<<20)
@@ -29,12 +27,17 @@ func (s *Server) handleUploadComic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpDir, err := s.media.TempDir()
+	spoolDir, err := s.media.SpoolDir()
 	if err != nil {
 		writeStoreError(w, err)
 		return
 	}
-	defer os.RemoveAll(tmpDir)
+	queued := false
+	defer func() {
+		if !queued {
+			os.RemoveAll(spoolDir)
+		}
+	}()
 
 	var groupID int
 	var groupName, filename, archivePath string
@@ -57,7 +60,7 @@ func (s *Server) handleUploadComic(w http.ResponseWriter, r *http.Request) {
 			groupName, _ = readSmallPart(part)
 		case "comic":
 			filename = filepath.Base(part.FileName())
-			archivePath = filepath.Join(tmpDir, "archive")
+			archivePath = filepath.Join(spoolDir, "archive")
 			if err := saveUpload(part, archivePath); err != nil {
 				writeUploadError(w, err)
 				return
@@ -76,7 +79,16 @@ func (s *Server) handleUploadComic(w http.ResponseWriter, r *http.Request) {
 		writeGroupError(w, err)
 		return
 	}
-	s.importArchive(w, r, userID, groupID, filename, tmpDir, archivePath)
+	job, err := s.store.CreateImport(r.Context(), store.NewImport{
+		UserID: userID, GroupID: groupID, Filename: filename, Source: store.SourceUpload, UploadPath: archivePath,
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	queued = true
+	s.importer.Notify()
+	writeJSON(w, http.StatusAccepted, job)
 }
 
 var errNoGroup = errors.New("no group")
@@ -102,41 +114,6 @@ func writeGroupError(w http.ResponseWriter, err error) {
 		return
 	}
 	writeStoreError(w, err)
-}
-
-// importArchive extracts a CBZ/CBR archive in tmpDir and adds it to the
-// group as a new comic.
-func (s *Server) importArchive(w http.ResponseWriter, r *http.Request, userID, groupID int, filename, tmpDir, archivePath string) {
-	extractDir := filepath.Join(tmpDir, "pages")
-	if err := os.Mkdir(extractDir, 0o755); err != nil {
-		writeStoreError(w, err)
-		return
-	}
-	entries, err := archive.Extract(archivePath, extractDir)
-	if err != nil {
-		slog.Warn("extracting upload", "file", filename, "err", err)
-		msg := "Could not read archive: " + err.Error()
-		if errors.Is(err, archive.ErrUnsupported) {
-			msg = "Unsupported file type. Upload a CBZ or CBR archive."
-		}
-		writeError(w, http.StatusUnprocessableEntity, msg)
-		return
-	}
-	// The archive itself is no longer needed; free the space early.
-	os.Remove(archivePath)
-
-	pages, err := media.Stage(extractDir, entries)
-	if err != nil {
-		writeStoreError(w, err)
-		return
-	}
-
-	comic, err := s.store.CreateComic(r.Context(), userID, groupID, filename, extractDir, pages)
-	if err != nil {
-		writeStoreError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusCreated, comic)
 }
 
 func readSmallPart(p *multipart.Part) (string, error) {

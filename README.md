@@ -8,7 +8,7 @@ Web based, tablet-first comic reader.
 
 ## Features
 
-- Upload CBZ / CBR archives (drag and drop, multiple at once), organized into groups
+- Upload CBZ / CBR archives (drag and drop, multiple at once), organized into groups; extraction runs in the background
 - Search archive.org for CBZ / CBR comics and import them straight into a group
 - Reader with swipe and arrow-key navigation; remembers your place in every comic
 - Reading history and per-group disk usage stats
@@ -47,6 +47,7 @@ listen: ":3000"
 database_path: "comics.db"  # SQLite database; relative to the config file
 storage_dir: "storage"       # page images; relative to the config file
 max_upload_mb: 2048
+import_workers: 2            # background imports processed at once
 secure_cookies: false        # set to true behind HTTPS
 ```
 

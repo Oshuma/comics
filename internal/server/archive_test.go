@@ -70,10 +70,14 @@ func TestArchiveSearchAndImport(t *testing.T) {
 		return c.json("POST", "/api/archive/import", req, out)
 	}
 
-	var comic store.Comic
-	if code := importFile(map[string]any{"identifier": "saga", "name": "issues/Saga 01.cbz", "groupName": "Saga"}, &comic); code != http.StatusCreated {
+	var job store.Import
+	if code := importFile(map[string]any{"identifier": "saga", "name": "issues/Saga 01.cbz", "groupName": "Saga"}, &job); code != http.StatusAccepted {
 		t.Fatalf("import: %d", code)
 	}
+	if job.Source != store.SourceArchive || job.ArchiveName != "issues/Saga 01.cbz" || job.Filename != "Saga 01.cbz" {
+		t.Fatalf("unexpected job: %+v", job)
+	}
+	comic := c.importedComic(job.ID)
 	if comic.Name != "Saga 01" || comic.PageCount != 2 {
 		t.Fatalf("unexpected comic: %+v", comic)
 	}
@@ -88,12 +92,20 @@ func TestArchiveSearchAndImport(t *testing.T) {
 		{"other user's group", map[string]any{"identifier": "saga", "name": "issues/Saga 01.cbz", "groupId": 999}, http.StatusNotFound, ""},
 		{"not in item", map[string]any{"identifier": "saga", "name": "../../etc/passwd", "groupId": comic.GroupID}, http.StatusNotFound, "isn't available"},
 		{"too large", map[string]any{"identifier": "saga", "name": "Saga Omnibus.cbz", "groupId": comic.GroupID}, http.StatusRequestEntityTooLarge, "too large"},
-		{"broken archive", map[string]any{"identifier": "saga", "name": "Broken.cbz", "groupId": comic.GroupID}, http.StatusUnprocessableEntity, "Unsupported file type"},
 	} {
 		var res struct{ Error string }
 		if code := importFile(tc.req, &res); code != tc.code || !strings.Contains(res.Error, tc.msg) {
 			t.Errorf("%s: got %d %q, want %d containing %q", tc.name, code, res.Error, tc.code, tc.msg)
 		}
+	}
+
+	// A file that can't be extracted is accepted, then fails in the background.
+	var broken store.Import
+	if code := importFile(map[string]any{"identifier": "saga", "name": "Broken.cbz", "groupId": comic.GroupID}, &broken); code != http.StatusAccepted {
+		t.Fatalf("broken import: %d", code)
+	}
+	if j := c.waitImport(broken.ID); j.Status != store.ImportFailed || !strings.Contains(j.Error, "Unsupported file type") {
+		t.Fatalf("broken import: %+v", j)
 	}
 
 	var group struct{ Comics []store.Comic }

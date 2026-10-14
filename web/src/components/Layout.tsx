@@ -4,6 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router'
 import { useAuth } from '../context'
 import { useTheme } from '../theme'
 import { Icon } from './Common'
+import { ImportsMenu } from './ImportsMenu'
 
 function ThemeToggle() {
   const { theme, toggle } = useTheme()
@@ -50,6 +51,7 @@ export default function Layout({ nav, title, children }: Props) {
             <Nav>
               {user && (
                 <>
+                  <ImportsMenu />
                   <Nav.Link as={NavLink} to="/search" title="Search archive.org">
                     <Icon name="search" className="fs-5" />
                     <span className="d-sm-none ms-2">Search archive.org</span>

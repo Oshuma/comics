@@ -65,6 +65,34 @@ export interface ArchiveResults {
   maxBytes: number
 }
 
+export type ImportStatus = 'queued' | 'processing' | 'done' | 'failed'
+
+// A background job turning an upload or archive.org file into a comic.
+export interface ImportJob {
+  id: number
+  groupId: number
+  groupName: string
+  filename: string
+  name: string
+  source: 'upload' | 'archive.org'
+  archiveIdentifier?: string
+  archiveName?: string
+  status: ImportStatus
+  error?: string
+  comicId: number | null
+  createdAt: string
+  updatedAt: string
+  // Set while the job is being processed.
+  progress?: ImportProgress
+}
+
+export interface ImportProgress {
+  phase: 'downloading' | 'extracting' | 'saving'
+  // Bytes processed out of the total; a zero total means unknown.
+  done: number
+  total: number
+}
+
 export interface History {
   id: number
   groupName: string
@@ -159,7 +187,9 @@ export const api = {
   archiveSearch: (q: string, page: number) =>
     get<ArchiveResults>(`/archive/search?q=${encodeURIComponent(q)}&page=${page}`),
   archiveImport: (file: ArchiveFile, groupId: number) =>
-    post<Comic>('/archive/import', { identifier: file.identifier, name: file.name, groupId }),
+    post<ImportJob>('/archive/import', { identifier: file.identifier, name: file.name, groupId }),
+  imports: () => get<ImportJob[]>('/imports'),
+  deleteImport: (id: number) => del<OK>(`/imports/${id}`),
   renameComic: (id: number, name: string) => patch<OK>(`/comics/${id}`, { name }),
   moveComic: (id: number, groupId: number) => put<OK>(`/comics/${id}/group`, { groupId }),
   finishComic: (id: number) =>

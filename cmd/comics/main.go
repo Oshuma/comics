@@ -16,6 +16,7 @@ import (
 	"github.com/Oshuma/comics/internal/archiveorg"
 	"github.com/Oshuma/comics/internal/config"
 	"github.com/Oshuma/comics/internal/database"
+	"github.com/Oshuma/comics/internal/importer"
 	"github.com/Oshuma/comics/internal/media"
 	"github.com/Oshuma/comics/internal/server"
 	"github.com/Oshuma/comics/internal/store"
@@ -89,14 +90,26 @@ func run(configPath string) error {
 	if err != nil {
 		return err
 	}
-	// Leftovers from interrupted uploads.
+	// Scratch files left by an interrupted run. Uploads waiting to be
+	// imported are kept separately and resumed.
 	os.RemoveAll(filepath.Join(cfg.StorageDir, "tmp"))
 
 	archive := archiveorg.New(archiveorg.DefaultBaseURL, "comics/"+fullVersion()+" (+https://github.com/Oshuma/comics)")
+	st := store.New(db, m)
+
+	// Workers stop when ctx is cancelled; jobs in progress resume next start.
+	imp := importer.New(st, m, archive, cfg.MaxUploadMB<<20, cfg.ImportWorkers)
+	if err := imp.Start(ctx); err != nil {
+		return err
+	}
+	defer func() {
+		stop()
+		imp.Wait()
+	}()
 
 	srv := &http.Server{
 		Addr:              cfg.Listen,
-		Handler:           server.New(cfg, store.New(db, m), m, web.Dist(), archive, fullVersion()).Handler(),
+		Handler:           server.New(cfg, st, m, web.Dist(), archive, imp, fullVersion()).Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       2 * time.Minute,
 	}

@@ -1,20 +1,27 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Button, Form, InputGroup, Nav, Table } from 'react-bootstrap'
 import { Link, NavLink, useSearchParams } from 'react-router'
-import { api, errorMessage, humanSize, type ArchiveFile, type ArchiveResults, type Comic } from '../api'
+import { api, errorMessage, humanSize, type ArchiveFile, type ArchiveResults, type ImportJob } from '../api'
 import { useFlash } from '../context'
 import Layout from '../components/Layout'
 import { EmptyState, Icon, LoadError, NameModal, Pagination, Spinner, useLoad } from '../components/Common'
+import { useImports } from '../components/Imports'
 
-type ImportState = { status: 'importing' } | { status: 'done'; comic: Comic } | { status: 'error'; error: string }
+// A row's import: a request being sent or rejected, or the latest job for the file.
+type ImportState =
+  | { status: 'requesting' }
+  | { status: 'queued' | 'processing' }
+  | { status: 'done'; comicId: number | null }
+  | { status: 'error'; error: string }
 
-const groupKey = 'search-group'
-
-function loadGroup(): string {
-  try {
-    return localStorage.getItem(groupKey) ?? ''
-  } catch {
-    return ''
+function jobState(job: ImportJob): ImportState {
+  switch (job.status) {
+    case 'done':
+      return { status: 'done', comicId: job.comicId }
+    case 'failed':
+      return { status: 'error', error: job.error || 'Import failed.' }
+    default:
+      return { status: job.status }
   }
 }
 
@@ -38,19 +45,27 @@ function ImportButton({
   maxBytes: number
   onImport: () => void
 }) {
-  if (state?.status === 'importing') {
+  if (state?.status === 'requesting' || state?.status === 'queued' || state?.status === 'processing') {
     return (
       <Button size="sm" variant="outline-secondary" className="text-nowrap" disabled>
-        <span className="spinner-border spinner-border-sm me-1" aria-hidden="true" />
-        Importing...
+        {state.status === 'queued' ? (
+          <Icon name="hourglass-split" className="me-1" />
+        ) : (
+          <span className="spinner-border spinner-border-sm me-1" aria-hidden="true" />
+        )}
+        {state.status === 'queued' ? 'Queued' : 'Importing...'}
       </Button>
     )
   }
   if (state?.status === 'done') {
-    return (
-      <Link to={`/comics/${state.comic.id}`} className="btn btn-sm btn-outline-success text-nowrap">
+    return state.comicId ? (
+      <Link to={`/comics/${state.comicId}`} className="btn btn-sm btn-outline-success text-nowrap">
         <Icon name="check-lg" /> View
       </Link>
+    ) : (
+      <span className="text-success text-nowrap small">
+        <Icon name="check-lg" /> Imported
+      </span>
     )
   }
   const tooLarge = file.size > maxBytes
@@ -156,9 +171,11 @@ export default function Search() {
   const q = params.get('q') ?? ''
   const page = Number(params.get('page')) || 1
   const [input, setInput] = useState(q)
-  const [groupId, setGroupId] = useState(loadGroup)
+  const [groupId, setGroupId] = useState('')
   const [creating, setCreating] = useState(false)
-  const [imports, setImports] = useState<Record<string, ImportState>>({})
+  // Requests in flight, or rejected before a job was created.
+  const [requests, setRequests] = useState<Record<string, ImportState>>({})
+  const { jobs, refresh: refreshImports } = useImports()
   const { data: groups, reload: reloadGroups } = useLoad(api.groups, [])
   // Tagged with the search it's for, so stale results aren't shown while a new search loads.
   const searchKey = `${page}:${q}`
@@ -168,16 +185,12 @@ export default function Search() {
   )
   const results = data?.key === searchKey ? data.results : null
 
-  const chooseGroup = (id: string) => {
-    setGroupId(id)
-    try {
-      localStorage.setItem(groupKey, id)
-    } catch {
-      // Not persisted; the choice still applies for this visit.
-    }
-  }
+  // Start fresh with no group when the search is cleared, e.g. from the navbar icon.
+  useEffect(() => {
+    if (!q) setGroupId('')
+  }, [q])
 
-  // Ignore a remembered group that has since been deleted.
+  // Ignore a group that has since been deleted.
   const selectedGroup = groups?.some((g) => String(g.id) === groupId) ? groupId : ''
 
   const search = (e: FormEvent) => {
@@ -186,14 +199,30 @@ export default function Search() {
     if (query) setParams({ q: query })
   }
 
+  // Each file's import state: a pending request wins, otherwise its latest job.
+  const imports = useMemo(() => {
+    const states: Record<string, ImportState> = {}
+    for (const job of jobs) {
+      const key = `${job.archiveIdentifier}/${job.archiveName}`
+      if (job.source === 'archive.org' && !states[key]) states[key] = jobState(job) // jobs are newest first
+    }
+    return { ...states, ...requests }
+  }, [jobs, requests])
+
   const importFile = async (f: ArchiveFile) => {
     const key = fileKey(f)
-    setImports((s) => ({ ...s, [key]: { status: 'importing' } }))
+    const clear = () =>
+      setRequests((s) => {
+        const { [key]: _, ...rest } = s
+        return rest
+      })
+    setRequests((s) => ({ ...s, [key]: { status: 'requesting' } }))
     try {
-      const comic = await api.archiveImport(f, Number(selectedGroup))
-      setImports((s) => ({ ...s, [key]: { status: 'done', comic } }))
+      await api.archiveImport(f, Number(selectedGroup))
+      await refreshImports()
+      clear()
     } catch (err) {
-      setImports((s) => ({ ...s, [key]: { status: 'error', error: errorMessage(err) } }))
+      setRequests((s) => ({ ...s, [key]: { status: 'error', error: errorMessage(err) } }))
     }
   }
 
@@ -203,7 +232,7 @@ export default function Search() {
       flash('success', 'Group added.')
       setCreating(false)
       await reloadGroups()
-      chooseGroup(String(group.id))
+      setGroupId(String(group.id))
     } catch (err) {
       flash('danger', `There was a problem adding that group: ${errorMessage(err)}`)
     }
@@ -259,7 +288,7 @@ export default function Search() {
         <div className="col-lg-5">
           <InputGroup>
             <InputGroup.Text>Import into</InputGroup.Text>
-            <Form.Select value={selectedGroup} onChange={(e) => chooseGroup(e.target.value)} aria-label="Group">
+            <Form.Select value={selectedGroup} onChange={(e) => setGroupId(e.target.value)} aria-label="Group">
               <option value="">Group...</option>
               {groups?.map((g) => (
                 <option key={g.id} value={g.id}>

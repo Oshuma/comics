@@ -6,6 +6,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import './styles.css'
 
 import { AuthProvider, FlashProvider, useAuth } from './context'
+import { ImportsProvider } from './components/Imports'
+import { UploadsProvider } from './components/Uploads'
 import { Spinner } from './components/Common'
 import Login from './pages/Login'
 import Setup from './pages/Setup'
@@ -63,7 +65,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
       <FlashProvider>
-        <RouterProvider router={router} />
+        <ImportsProvider>
+          <UploadsProvider>
+            <RouterProvider router={router} />
+          </UploadsProvider>
+        </ImportsProvider>
       </FlashProvider>
     </AuthProvider>
   </StrictMode>,

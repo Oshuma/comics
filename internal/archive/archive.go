@@ -30,10 +30,18 @@ var (
 	rarMagic = []byte("Rar!\x1a\x07")
 )
 
+// ProgressFunc is called as extraction proceeds, with how much of the
+// archive has been processed out of its total (in compressed bytes).
+type ProgressFunc func(done, total int64)
+
 // Extract unpacks every regular file in the archive at src into destDir and
 // returns the entries in natural sort order of their names. The format is
 // detected from the file contents, since .cbr files are often zips.
-func Extract(src, destDir string) ([]Entry, error) {
+// progress may be nil.
+func Extract(src, destDir string, progress ProgressFunc) ([]Entry, error) {
+	if progress == nil {
+		progress = func(int64, int64) {}
+	}
 	f, err := os.Open(src)
 	if err != nil {
 		return nil, err
@@ -50,9 +58,9 @@ func Extract(src, destDir string) ([]Entry, error) {
 	var entries []Entry
 	switch {
 	case bytes.HasPrefix(header, zipMagic):
-		entries, err = extractZip(f, destDir)
+		entries, err = extractZip(f, destDir, progress)
 	case bytes.HasPrefix(header, rarMagic):
-		entries, err = extractRar(f, destDir)
+		entries, err = extractRar(f, destDir, progress)
 	default:
 		return nil, ErrUnsupported
 	}
@@ -66,7 +74,7 @@ func Extract(src, destDir string) ([]Entry, error) {
 	return entries, nil
 }
 
-func extractZip(f *os.File, destDir string) ([]Entry, error) {
+func extractZip(f *os.File, destDir string, progress ProgressFunc) ([]Entry, error) {
 	info, err := f.Stat()
 	if err != nil {
 		return nil, err
@@ -76,8 +84,15 @@ func extractZip(f *os.File, destDir string) ([]Entry, error) {
 		return nil, fmt.Errorf("reading zip: %w", err)
 	}
 
+	var total, done int64
+	for _, zf := range zr.File {
+		total += int64(zf.CompressedSize64)
+	}
+	progress(0, total)
+
 	var entries []Entry
 	for _, zf := range zr.File {
+		done += int64(zf.CompressedSize64)
 		if zf.FileInfo().IsDir() || skipName(zf.Name) {
 			continue
 		}
@@ -91,12 +106,23 @@ func extractZip(f *os.File, destDir string) ([]Entry, error) {
 			return nil, err
 		}
 		entries = append(entries, entry)
+		progress(done, total)
 	}
+	progress(total, total)
 	return entries, nil
 }
 
-func extractRar(f *os.File, destDir string) ([]Entry, error) {
-	rr, err := rardecode.NewReader(f)
+func extractRar(f *os.File, destDir string, progress ProgressFunc) ([]Entry, error) {
+	info, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	// RAR has no up-front index, so progress is how far into the file we've read.
+	total := info.Size()
+	cr := &countingReader{r: f}
+	progress(0, total)
+
+	rr, err := rardecode.NewReader(cr)
 	if err != nil {
 		return nil, fmt.Errorf("reading rar: %w", err)
 	}
@@ -118,8 +144,21 @@ func extractRar(f *os.File, destDir string) ([]Entry, error) {
 			return nil, err
 		}
 		entries = append(entries, entry)
+		progress(min(cr.n, total), total)
 	}
+	progress(total, total)
 	return entries, nil
+}
+
+type countingReader struct {
+	r io.Reader
+	n int64
+}
+
+func (c *countingReader) Read(p []byte) (int, error) {
+	n, err := c.r.Read(p)
+	c.n += int64(n)
+	return n, err
 }
 
 // writeEntry writes to a numbered file so archive paths never touch the
