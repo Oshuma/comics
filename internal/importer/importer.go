@@ -133,9 +133,11 @@ func (im *Importer) work(ctx context.Context) {
 	defer im.wg.Done()
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
-	for {
-		job, err := im.store.ClaimImport(ctx)
-		if err != nil && ctx.Err() == nil {
+	for ctx.Err() == nil {
+		// Not cancellable: a claimed job must reach run, which requeues it
+		// if we're shutting down.
+		job, err := im.store.ClaimImport(context.WithoutCancel(ctx))
+		if err != nil {
 			slog.Error("claiming import", "err", err)
 		}
 		if job != nil {
@@ -206,6 +208,9 @@ func (im *Importer) run(ctx context.Context, job *store.Import) {
 // process downloads (for archive.org jobs), extracts and stores a comic,
 // returning its ID.
 func (im *Importer) process(ctx context.Context, job *store.Import) (int, error) {
+	if err := ctx.Err(); err != nil {
+		return 0, err
+	}
 	tmpDir, err := im.media.TempDir()
 	if err != nil {
 		return 0, err

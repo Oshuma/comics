@@ -95,23 +95,24 @@ func (s *Store) ListImports(ctx context.Context, userID int) ([]Import, error) {
 }
 
 // ClaimImport marks the oldest queued job as processing and returns it, or
-// nil when nothing is queued.
+// nil when nothing is queued. It's a single statement, so a job is never left
+// claimed without being returned. GroupName isn't set.
 func (s *Store) ClaimImport(ctx context.Context) (*Import, error) {
-	var id int
+	var i Import
 	err := s.db.QueryRowContext(ctx, `
 		UPDATE imports SET status = 'processing', updated_at = CURRENT_TIMESTAMP
 		WHERE id = (SELECT id FROM imports WHERE status = 'queued' ORDER BY id LIMIT 1)
-		RETURNING id`).Scan(&id)
+		RETURNING id, user_id, group_id, filename, source, COALESCE(upload_path, ''),
+			COALESCE(archive_identifier, ''), COALESCE(archive_name, ''), status, comic_id, created_at, updated_at`,
+	).Scan(&i.ID, &i.UserID, &i.GroupID, &i.Filename, &i.Source, &i.UploadPath,
+		&i.ArchiveIdentifier, &i.ArchiveName, &i.Status, &i.ComicID, &i.CreatedAt, &i.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	i, err := scanImport(s.db.QueryRowContext(ctx, importSelect+` WHERE i.id = ?`, id))
-	if err != nil {
-		return nil, notFound(err)
-	}
+	i.Name = PrettyName(i.Filename)
 	return &i, nil
 }
 
