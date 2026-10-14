@@ -186,12 +186,10 @@ export function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: V
     </Button>
   )
   return (
-    <div className="d-flex justify-content-end mb-3">
-      <ButtonGroup size="sm" aria-label="Display">
-        {option('tiles', 'Tiles', 'grid-3x3-gap')}
-        {option('table', 'Table', 'list-ul')}
-      </ButtonGroup>
-    </div>
+    <ButtonGroup size="sm" aria-label="Display">
+      {option('tiles', 'Tiles', 'grid-3x3-gap')}
+      {option('table', 'Table', 'list-ul')}
+    </ButtonGroup>
   )
 }
 

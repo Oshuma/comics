@@ -9,10 +9,19 @@ interface GroupActionsProps {
   group: Group
   onChanged: () => void
   onDeleted: () => void
+  // Include an item for uploading into the group (default true).
+  upload?: boolean
+  uploadLabel?: string
 }
 
 // Dropdown items for managing a group, and its edit modal (render outside the menu).
-export function useGroupMenu({ group, onChanged, onDeleted }: GroupActionsProps) {
+export function useGroupMenu({
+  group,
+  onChanged,
+  onDeleted,
+  upload = true,
+  uploadLabel = 'Upload Comics',
+}: GroupActionsProps) {
   const flash = useFlash()
   const [editing, setEditing] = useState(false)
 
@@ -40,10 +49,12 @@ export function useGroupMenu({ group, onChanged, onDeleted }: GroupActionsProps)
 
   const items = (
     <>
-      <Dropdown.Item as={Link} to={`/upload?group_id=${group.id}`}>
-        <Icon name="cloud-upload" className="me-2" />
-        Upload Comics
-      </Dropdown.Item>
+      {upload && (
+        <Dropdown.Item as={Link} to={`/upload?group_id=${group.id}`}>
+          <Icon name="cloud-upload" className="me-2" />
+          {uploadLabel}
+        </Dropdown.Item>
+      )}
       <Dropdown.Item onClick={() => setEditing(true)}>
         <Icon name="pencil" className="me-2" />
         Edit Group

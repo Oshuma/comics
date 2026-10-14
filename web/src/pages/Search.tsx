@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Button, Form, InputGroup, Nav, Table } from 'react-bootstrap'
-import { Link, NavLink, useSearchParams } from 'react-router'
+import { Button, Form, InputGroup, Table } from 'react-bootstrap'
+import { Link, useSearchParams } from 'react-router'
 import { api, errorMessage, humanSize, type ArchiveFile, type ArchiveResults, type ImportJob } from '../api'
 import { useFlash } from '../context'
 import Layout from '../components/Layout'
@@ -238,12 +238,6 @@ export default function Search() {
     }
   }
 
-  const nav = (
-    <Nav.Link as={NavLink} to="/search">
-      <Icon name="search" /> Search archive.org
-    </Nav.Link>
-  )
-
   let content
   if (!q) {
     content = (
@@ -266,7 +260,7 @@ export default function Search() {
   }
 
   return (
-    <Layout nav={nav} title={q ? `Search: ${q}` : 'Search archive.org'}>
+    <Layout title={q ? `Search: ${q}` : 'Search archive.org'}>
       <div className="row g-2 mb-3">
         <div className="col-lg-7">
           <Form onSubmit={search} role="search">

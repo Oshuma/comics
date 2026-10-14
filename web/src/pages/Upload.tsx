@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react'
-import { Alert, Button, Card, Form, InputGroup, Nav, ProgressBar } from 'react-bootstrap'
-import { NavLink, useSearchParams } from 'react-router'
+import { Alert, Button, Card, Form, InputGroup, ProgressBar } from 'react-bootstrap'
+import { useSearchParams } from 'react-router'
 import { api, errorMessage, humanSize } from '../api'
 import { useFlash } from '../context'
 import Layout from '../components/Layout'
@@ -56,19 +56,8 @@ export default function Upload() {
     addFiles(e.dataTransfer.files)
   }
 
-  const nav = (
-    <>
-      <Nav.Link as={NavLink} to="/upload">
-        <Icon name="cloud-upload" /> Upload Comics
-      </Nav.Link>
-      <Nav.Link onClick={() => setCreating(true)}>
-        <Icon name="plus-lg" /> New Group
-      </Nav.Link>
-    </>
-  )
-
-  if (error) return <Layout nav={nav}><LoadError error={error} /></Layout>
-  if (!groups) return <Layout nav={nav}><Spinner /></Layout>
+  if (error) return <Layout><LoadError error={error} /></Layout>
+  if (!groups) return <Layout><Spinner /></Layout>
 
   const uploading = items.filter((i) => i.status === 'uploading' || i.status === 'queued')
   const totalBytes = uploading.reduce((n, i) => n + i.file.size, 0)
@@ -80,7 +69,7 @@ export default function Upload() {
   const nameIsExisting = selectedName !== null && groups.some((g) => g.name === selectedName)
 
   return (
-    <Layout nav={nav} title="Upload Comics">
+    <Layout title="Upload Comics">
       <div className="row justify-content-center">
         <div className="col-md-8 col-lg-6">
           {groups.length === 0 && !selectedName && (

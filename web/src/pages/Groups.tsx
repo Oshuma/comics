@@ -97,19 +97,8 @@ export default function Groups() {
     }
   }
 
-  const nav = (
-    <NavDropdown
-      title={
-        <>
-          <Icon name="gear" /> Manage
-        </>
-      }
-    >
-      <NavDropdown.Item as={Link} to="/upload">
-        <Icon name="cloud-upload" className="me-2" />
-        Upload Comics
-      </NavDropdown.Item>
-      <NavDropdown.Divider />
+  const manage = (
+    <>
       <NavDropdown.Item onClick={() => setShowEmpty((v) => !v)}>
         <Icon name={showEmpty ? 'toggle-on' : 'toggle-off'} className="me-2" />
         {showEmpty ? 'Hide' : 'Show'} Empty Groups
@@ -119,10 +108,11 @@ export default function Groups() {
         <Icon name="eye-slash" className="me-2" />
         Remove Read Comics
       </NavDropdown.Item>
-    </NavDropdown>
+    </>
   )
 
   let content
+  let actions
   if (error) content = <LoadError error={error} />
   else if (!groups) content = <Spinner />
   else if (groups.length === 0)
@@ -135,9 +125,9 @@ export default function Groups() {
     )
   else {
     const visible = groups.filter((g) => showEmpty || g.comicCount > 0)
+    if (visible.length > 0) actions = <ViewToggle view={view} onChange={setView} />
     content = (
       <>
-        {visible.length > 0 && <ViewToggle view={view} onChange={setView} />}
         {visible.length > 0 &&
           (view === 'tiles' ? (
             <div className="row">
@@ -175,5 +165,9 @@ export default function Groups() {
     )
   }
 
-  return <Layout nav={nav}>{content}</Layout>
+  return (
+    <Layout actions={actions} manage={manage}>
+      {content}
+    </Layout>
+  )
 }

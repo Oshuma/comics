@@ -30,28 +30,25 @@ function ComicView({ comic, reload }: { comic: ComicDetail; reload: () => void }
       <Nav.Link as={NavLink} to={`/comics/${comic.id}`} className="text-truncate nav-title" title={comic.filename}>
         {comic.name}
       </Nav.Link>
-      <NavDropdown
-        title={
-          <>
-            <Icon name="gear" /> Manage
-          </>
-        }
-      >
-        <NavDropdown.Item onClick={rename.open}>
-          <Icon name="pencil" className="me-2" />
-          Rename Comic
-        </NavDropdown.Item>
-        <NavDropdown.Divider />
-        <NavDropdown.Item onClick={remove} className="text-danger">
-          <Icon name="trash" className="me-2" />
-          Delete Comic
-        </NavDropdown.Item>
-      </NavDropdown>
+    </>
+  )
+
+  const manage = (
+    <>
+      <NavDropdown.Item onClick={rename.open}>
+        <Icon name="pencil" className="me-2" />
+        Rename Comic
+      </NavDropdown.Item>
+      <NavDropdown.Divider />
+      <NavDropdown.Item onClick={remove} className="text-danger">
+        <Icon name="trash" className="me-2" />
+        Delete Comic
+      </NavDropdown.Item>
     </>
   )
 
   return (
-    <Layout nav={nav} title={comic.name}>
+    <Layout nav={nav} quickLinks={false} manage={manage} title={comic.name}>
       <div className="row">
         {comic.pages.map((page) => (
           <div key={page.id} className="col-4 col-sm-3 col-md-2 mb-4">
@@ -71,7 +68,17 @@ export default function ComicPage() {
   const id = Number(useParams().id)
   const { data: comic, error, reload } = useLoad(() => api.comic(id), [id])
 
-  if (error) return <Layout><LoadError error={error} /></Layout>
-  if (!comic) return <Layout><Spinner /></Layout>
+  if (error)
+    return (
+      <Layout quickLinks={false}>
+        <LoadError error={error} />
+      </Layout>
+    )
+  if (!comic)
+    return (
+      <Layout quickLinks={false}>
+        <Spinner />
+      </Layout>
+    )
   return <ComicView comic={comic} reload={reload} />
 }

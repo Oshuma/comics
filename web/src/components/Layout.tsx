@@ -20,11 +20,17 @@ function ThemeToggle() {
 interface Props {
   // Page-specific navbar items.
   nav?: ReactNode
+  // Page-specific controls on the right of the navbar, e.g. the view toggle.
+  actions?: ReactNode
+  // Items for the page's Manage (gear) menu.
+  manage?: ReactNode
+  // Show the upload and search icons after the logo (default true).
+  quickLinks?: boolean
   title?: string
   children: ReactNode
 }
 
-export default function Layout({ nav, title, children }: Props) {
+export default function Layout({ nav, actions, manage, quickLinks = true, title, children }: Props) {
   const { status, user, signOut } = useAuth()
   const navigate = useNavigate()
   const { theme, toggle: toggleTheme } = useTheme()
@@ -47,19 +53,39 @@ export default function Layout({ nav, title, children }: Props) {
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="app-nav" />
           <Navbar.Collapse id="app-nav">
-            <Nav className="me-auto">{nav}</Nav>
-            <Nav>
-              {user && (
+            <Nav className="me-auto">
+              {user && quickLinks && (
                 <>
-                  <ImportsMenu />
-                  <Nav.Link as={NavLink} to="/search" title="Search archive.org">
-                    <Icon name="search" className="fs-5" />
-                    <span className="d-sm-none ms-2">Search archive.org</span>
-                  </Nav.Link>
                   <Nav.Link as={NavLink} to="/upload" title="Upload Comics" end>
                     <Icon name="cloud-upload" className="fs-5" />
                     <span className="d-sm-none ms-2">Upload Comics</span>
                   </Nav.Link>
+                  <Nav.Link as={NavLink} to="/search" title="Search archive.org">
+                    <Icon name="search" className="fs-5" />
+                    <span className="d-sm-none ms-2">Search archive.org</span>
+                  </Nav.Link>
+                </>
+              )}
+              {nav}
+            </Nav>
+            {actions && <div className="d-flex align-items-center py-2 py-sm-0 me-sm-2">{actions}</div>}
+            <Nav>
+              {user && (
+                <>
+                  <ImportsMenu />
+                  {manage && (
+                    <NavDropdown
+                      align="end"
+                      title={
+                        <>
+                          <Icon name="gear" className="fs-5" />
+                          <span className="d-sm-none ms-2">Manage</span>
+                        </>
+                      }
+                    >
+                      {manage}
+                    </NavDropdown>
+                  )}
                   <NavDropdown
                     align="end"
                     title={

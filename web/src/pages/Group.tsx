@@ -1,5 +1,5 @@
-import { useState, type MouseEvent } from 'react'
-import { Button, Card, Collapse, Dropdown, Form, Nav, NavDropdown, Table } from 'react-bootstrap'
+import { type MouseEvent } from 'react'
+import { Card, Dropdown, Nav, Table } from 'react-bootstrap'
 import { Link, NavLink, useNavigate, useParams } from 'react-router'
 import { api, errorMessage, resumePath, type Comic, type Group } from '../api'
 import { useFlash } from '../context'
@@ -63,16 +63,68 @@ function useComicActions({ comic, onChanged }: ComicProps) {
   return { read, move, remove, rename }
 }
 
+// Options menu for a comic, shared by the tile and table views.
+function ComicMenu({
+  comic,
+  groups,
+  actions,
+  align = 'end',
+}: {
+  comic: Comic
+  groups: Group[]
+  actions: ReturnType<typeof useComicActions>
+  // Which edge of the gear button the menu lines up with.
+  align?: 'start' | 'end'
+}) {
+  const { move, remove, rename } = actions
+  const others = groups.filter((g) => g.id !== comic.groupId)
+  return (
+    <>
+      <Dropdown align={align}>
+        <Dropdown.Toggle variant="outline-secondary" size="sm" aria-label="Manage comic">
+          <Icon name="gear" />
+        </Dropdown.Toggle>
+        <Dropdown.Menu className="dropdown-menu-scroll">
+          <Dropdown.Item as={Link} to={`/comics/${comic.id}`}>
+            <Icon name="grid-3x3-gap" className="me-2" />
+            View Pages
+          </Dropdown.Item>
+          <Dropdown.Item onClick={rename.open}>
+            <Icon name="pencil" className="me-2" />
+            Rename Comic
+          </Dropdown.Item>
+          {others.length > 0 && (
+            <>
+              <Dropdown.Divider />
+              <Dropdown.Header>Move to</Dropdown.Header>
+              {others.map((g) => (
+                <Dropdown.Item key={g.id} onClick={() => move(g.id)} title={g.name}>
+                  <Icon name="folder" className="me-2" />
+                  {g.name}
+                </Dropdown.Item>
+              ))}
+            </>
+          )}
+          <Dropdown.Divider />
+          <Dropdown.Item className="text-danger" onClick={remove}>
+            <Icon name="trash" className="me-2" />
+            Delete Comic
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
+      {rename.modal}
+    </>
+  )
+}
+
 function ComicCard(props: ComicProps) {
   const { comic, groups } = props
-  const { read, move, remove, rename } = useComicActions(props)
-  const [open, setOpen] = useState(false)
-  const [target, setTarget] = useState('')
+  const actions = useComicActions(props)
 
   return (
     <div className="col-6 col-sm-4 col-md-3 col-xl-2 mb-4">
       <Card className="h-100">
-        <a href={`/comics/${comic.id}`} onClick={read} title="Read">
+        <a href={`/comics/${comic.id}`} onClick={actions.read} title="Read">
           <Thumb pageId={comic.coverPageId} />
         </a>
         <Card.Body className="p-2">
@@ -80,71 +132,28 @@ function ComicCard(props: ComicProps) {
             {comic.name}
           </h6>
           <div className="d-flex justify-content-between align-items-center">
-            <div className="btn-group">
-              <Link to={`/comics/${comic.id}`} className="btn btn-sm btn-outline-secondary" title="View Pages">
-                <Icon name="grid-3x3-gap" />
-              </Link>
-              <Button
-                size="sm"
-                variant="outline-secondary"
-                onClick={() => setOpen((o) => !o)}
-                aria-expanded={open}
-                title="Options"
-              >
-                <Icon name="gear" /> <Icon name={open ? 'caret-up-fill' : 'caret-down-fill'} className="small" />
-              </Button>
-            </div>
+            <ComicMenu comic={comic} groups={groups} actions={actions} align="start" />
             <ReadState read={comic.read} reading={comic.reading} />
           </div>
-
-          <Collapse in={open}>
-            <div>
-              <div className="pt-2">
-                <Form.Select size="sm" className="mb-2" value={target} onChange={(e) => setTarget(e.target.value)}>
-                  <option value="">Move comic...</option>
-                  {groups
-                    .filter((g) => g.id !== comic.groupId)
-                    .map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.name}
-                      </option>
-                    ))}
-                </Form.Select>
-                <div className="d-flex flex-wrap gap-2">
-                  <Button size="sm" disabled={!target} onClick={() => move(Number(target))}>
-                    Move
-                  </Button>
-                  <Button size="sm" variant="outline-secondary" onClick={rename.open}>
-                    Rename
-                  </Button>
-                  <Button size="sm" variant="danger" onClick={remove}>
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Collapse>
         </Card.Body>
       </Card>
-      {rename.modal}
     </div>
   )
 }
 
 function ComicRow(props: ComicProps) {
   const { comic, groups } = props
-  const { read, move, remove, rename } = useComicActions(props)
-  const others = groups.filter((g) => g.id !== comic.groupId)
+  const actions = useComicActions(props)
 
   return (
     <tr>
       <td className="table-thumb">
-        <a href={`/comics/${comic.id}`} onClick={read} title="Read">
+        <a href={`/comics/${comic.id}`} onClick={actions.read} title="Read">
           <Thumb pageId={comic.coverPageId} />
         </a>
       </td>
       <td className="text-break">
-        <a href={`/comics/${comic.id}`} onClick={read} title={comic.filename} className="table-link">
+        <a href={`/comics/${comic.id}`} onClick={actions.read} title={comic.filename} className="table-link">
           {comic.name}
         </a>
       </td>
@@ -153,39 +162,7 @@ function ComicRow(props: ComicProps) {
         <ReadState read={comic.read} reading={comic.reading} />
       </td>
       <td className="text-end">
-        <Dropdown align="end">
-          <Dropdown.Toggle variant="outline-secondary" size="sm" aria-label="Manage comic">
-            <Icon name="gear" />
-          </Dropdown.Toggle>
-          <Dropdown.Menu className="dropdown-menu-scroll">
-            <Dropdown.Item as={Link} to={`/comics/${comic.id}`}>
-              <Icon name="grid-3x3-gap" className="me-2" />
-              View Pages
-            </Dropdown.Item>
-            <Dropdown.Item onClick={rename.open}>
-              <Icon name="pencil" className="me-2" />
-              Rename Comic
-            </Dropdown.Item>
-            {others.length > 0 && (
-              <>
-                <Dropdown.Divider />
-                <Dropdown.Header>Move to</Dropdown.Header>
-                {others.map((g) => (
-                  <Dropdown.Item key={g.id} onClick={() => move(g.id)} title={g.name}>
-                    <Icon name="folder" className="me-2" />
-                    {g.name}
-                  </Dropdown.Item>
-                ))}
-              </>
-            )}
-            <Dropdown.Divider />
-            <Dropdown.Item className="text-danger" onClick={remove}>
-              <Icon name="trash" className="me-2" />
-              Delete Comic
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-        {rename.modal}
+        <ComicMenu comic={comic} groups={groups} actions={actions} />
       </td>
     </tr>
   )
@@ -193,31 +170,30 @@ function ComicRow(props: ComicProps) {
 
 function GroupView({ group, comics, groups, reload }: { group: Group; comics: Comic[]; groups: Group[]; reload: () => void }) {
   const navigate = useNavigate()
-  const { items, modal } = useGroupMenu({ group, onChanged: reload, onDeleted: () => navigate('/') })
+  const { items, modal } = useGroupMenu({
+    group,
+    onChanged: reload,
+    onDeleted: () => navigate('/'),
+    uploadLabel: 'Upload',
+  })
   const [view, setView] = useViewMode('comics-view')
 
   const nav = (
-    <>
-      <Nav.Link as={NavLink} to={`/groups/${group.id}`} className="text-truncate nav-title">
-        {group.name}
-      </Nav.Link>
-      <NavDropdown
-        title={
-          <>
-            <Icon name="gear" /> Manage
-          </>
-        }
-      >
-        {items}
-      </NavDropdown>
-    </>
+    <Nav.Link as={NavLink} to={`/groups/${group.id}`} className="text-truncate nav-title">
+      {group.name}
+    </Nav.Link>
   )
 
   return (
-    <Layout nav={nav} title={group.name}>
+    <Layout
+      nav={nav}
+      quickLinks={false}
+      manage={items}
+      actions={comics.length > 0 && <ViewToggle view={view} onChange={setView} />}
+      title={group.name}
+    >
       {comics.length > 0 ? (
         <>
-          <ViewToggle view={view} onChange={setView} />
           {view === 'tiles' ? (
             <div className="row">
               {comics.map((c) => (
@@ -259,8 +235,18 @@ export default function GroupPage() {
   const id = Number(useParams().id)
   const { data, error, reload } = useLoad(() => Promise.all([api.group(id), api.groups()]), [id])
 
-  if (error) return <Layout><LoadError error={error} /></Layout>
-  if (!data) return <Layout><Spinner /></Layout>
+  if (error)
+    return (
+      <Layout quickLinks={false}>
+        <LoadError error={error} />
+      </Layout>
+    )
+  if (!data)
+    return (
+      <Layout quickLinks={false}>
+        <Spinner />
+      </Layout>
+    )
 
   const [{ group, comics }, groups] = data
   return <GroupView group={group} comics={comics} groups={groups} reload={reload} />
