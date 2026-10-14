@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log/slog"
@@ -70,17 +71,42 @@ func (s *Server) handleUploadComic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if groupID == 0 {
-		if strings.TrimSpace(groupName) == "" {
-			writeError(w, http.StatusUnprocessableEntity, "Please select a group.")
-			return
-		}
-		if groupID, err = s.store.FindOrCreateGroup(r.Context(), userID, groupName); err != nil {
-			writeStoreError(w, err)
-			return
-		}
+	groupID, err = s.resolveGroup(r.Context(), userID, groupID, groupName)
+	if err != nil {
+		writeGroupError(w, err)
+		return
 	}
+	s.importArchive(w, r, userID, groupID, filename, tmpDir, archivePath)
+}
 
+var errNoGroup = errors.New("no group")
+
+// resolveGroup returns groupID, or the user's group named groupName
+// (creating it if needed) when groupID is zero.
+func (s *Server) resolveGroup(ctx context.Context, userID, groupID int, groupName string) (int, error) {
+	if groupID != 0 {
+		if _, err := s.store.GetGroup(ctx, userID, groupID); err != nil {
+			return 0, err
+		}
+		return groupID, nil
+	}
+	if strings.TrimSpace(groupName) == "" {
+		return 0, errNoGroup
+	}
+	return s.store.FindOrCreateGroup(ctx, userID, groupName)
+}
+
+func writeGroupError(w http.ResponseWriter, err error) {
+	if errors.Is(err, errNoGroup) {
+		writeError(w, http.StatusUnprocessableEntity, "Please select a group.")
+		return
+	}
+	writeStoreError(w, err)
+}
+
+// importArchive extracts a CBZ/CBR archive in tmpDir and adds it to the
+// group as a new comic.
+func (s *Server) importArchive(w http.ResponseWriter, r *http.Request, userID, groupID int, filename, tmpDir, archivePath string) {
 	extractDir := filepath.Join(tmpDir, "pages")
 	if err := os.Mkdir(extractDir, 0o755); err != nil {
 		writeStoreError(w, err)

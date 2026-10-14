@@ -9,6 +9,7 @@ Web based, tablet-first comic reader.
 ## Features
 
 - Upload CBZ / CBR archives (drag and drop, multiple at once), organized into groups
+- Search archive.org for CBZ / CBR comics and import them straight into a group
 - Reader with swipe and arrow-key navigation; remembers your place in every comic
 - Reading history and per-group disk usage stats
 - Multi-user, with an admin panel for managing users

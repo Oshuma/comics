@@ -49,6 +49,22 @@ export interface PageView extends Page {
   nextPageId: number | null
 }
 
+export interface ArchiveFile {
+  identifier: string
+  itemTitle: string
+  name: string
+  size: number
+}
+
+export interface ArchiveResults {
+  files: ArchiveFile[]
+  totalItems: number
+  page: number
+  perPage: number
+  // Files larger than this can't be imported.
+  maxBytes: number
+}
+
 export interface History {
   id: number
   groupName: string
@@ -140,6 +156,10 @@ export const api = {
   comic: (id: number) => get<ComicDetail>(`/comics/${id}`),
   deleteComic: (id: number) => del<OK>(`/comics/${id}`),
   deleteReadComics: () => del<OK>('/comics/read'),
+  archiveSearch: (q: string, page: number) =>
+    get<ArchiveResults>(`/archive/search?q=${encodeURIComponent(q)}&page=${page}`),
+  archiveImport: (file: ArchiveFile, groupId: number) =>
+    post<Comic>('/archive/import', { identifier: file.identifier, name: file.name, groupId }),
   renameComic: (id: number, name: string) => patch<OK>(`/comics/${id}`, { name }),
   moveComic: (id: number, groupId: number) => put<OK>(`/comics/${id}/group`, { groupId }),
   finishComic: (id: number) =>

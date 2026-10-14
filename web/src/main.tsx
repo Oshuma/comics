@@ -14,6 +14,7 @@ import GroupPage from './pages/Group'
 import ComicPage from './pages/Comic'
 import Reader from './pages/Reader'
 import Upload from './pages/Upload'
+import Search from './pages/Search'
 import HistoryPage from './pages/History'
 import Stats from './pages/Stats'
 import Admin from './pages/Admin'
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
       { path: '/comics/:id', element: <ComicPage /> },
       { path: '/comics/:id/pages/:pageId', element: <Reader /> },
       { path: '/upload', element: <Upload /> },
+      { path: '/search', element: <Search /> },
       { path: '/history', element: <HistoryPage /> },
       { path: '/stats', element: <Stats /> },
     ],

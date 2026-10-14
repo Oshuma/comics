@@ -26,6 +26,7 @@ interface Props {
 export default function Layout({ nav, title, children }: Props) {
   const { status, user, signOut } = useAuth()
   const navigate = useNavigate()
+  const { theme, toggle: toggleTheme } = useTheme()
 
   useEffect(() => {
     document.title = title ? `${title} · Comics` : 'Comics'
@@ -47,9 +48,12 @@ export default function Layout({ nav, title, children }: Props) {
           <Navbar.Collapse id="app-nav">
             <Nav className="me-auto">{nav}</Nav>
             <Nav>
-              <ThemeToggle />
               {user && (
                 <>
+                  <Nav.Link as={NavLink} to="/search" title="Search archive.org">
+                    <Icon name="search" className="fs-5" />
+                    <span className="d-sm-none ms-2">Search archive.org</span>
+                  </Nav.Link>
                   <Nav.Link as={NavLink} to="/upload" title="Upload Comics" end>
                     <Icon name="cloud-upload" className="fs-5" />
                     <span className="d-sm-none ms-2">Upload Comics</span>
@@ -71,6 +75,10 @@ export default function Layout({ nav, title, children }: Props) {
                     <NavDropdown.Item as={Link} to="/stats">
                       <Icon name="bar-chart" className="me-2" />
                       Stats
+                    </NavDropdown.Item>
+                    <NavDropdown.Item as="button" onClick={toggleTheme}>
+                      <Icon name={theme === 'dark' ? 'sun' : 'moon-stars'} className="me-2" />
+                      {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                     </NavDropdown.Item>
                     {user.admin && (
                       <>
@@ -108,7 +116,8 @@ export default function Layout({ nav, title, children }: Props) {
   )
 }
 
-// Simple page layout used before sign-in (login/setup).
+// Simple page layout used before sign-in (login/setup), which has no user menu
+// for the theme setting.
 export function BareLayout({ label, children }: { label?: string; children: ReactNode }) {
   return (
     <>

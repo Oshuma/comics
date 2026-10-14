@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Oshuma/comics/internal/archiveorg"
 	"github.com/Oshuma/comics/internal/config"
 	"github.com/Oshuma/comics/internal/database"
 	"github.com/Oshuma/comics/internal/media"
@@ -91,9 +92,11 @@ func run(configPath string) error {
 	// Leftovers from interrupted uploads.
 	os.RemoveAll(filepath.Join(cfg.StorageDir, "tmp"))
 
+	archive := archiveorg.New(archiveorg.DefaultBaseURL, "comics/"+fullVersion()+" (+https://github.com/Oshuma/comics)")
+
 	srv := &http.Server{
 		Addr:              cfg.Listen,
-		Handler:           server.New(cfg, store.New(db, m), m, web.Dist(), fullVersion()).Handler(),
+		Handler:           server.New(cfg, store.New(db, m), m, web.Dist(), archive, fullVersion()).Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       2 * time.Minute,
 	}

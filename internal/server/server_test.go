@@ -17,6 +17,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/Oshuma/comics/internal/archiveorg"
 	"github.com/Oshuma/comics/internal/config"
 	"github.com/Oshuma/comics/internal/database"
 	"github.com/Oshuma/comics/internal/media"
@@ -55,6 +56,11 @@ func (c *client) json(method, path string, in, out any) int {
 }
 
 func newTestServer(t *testing.T) *client {
+	// Nothing listens here; tests that need archive.org use newTestServerWithArchive.
+	return newTestServerWithArchive(t, "http://127.0.0.1:1")
+}
+
+func newTestServerWithArchive(t *testing.T, archiveURL string) *client {
 	dir := t.TempDir()
 	ctx := context.Background()
 	db, err := database.Open(ctx, filepath.Join(dir, "comics.db"))
@@ -71,7 +77,7 @@ func newTestServer(t *testing.T) *client {
 	}
 	cfg := &config.Config{MaxUploadMB: 10}
 	static := fstest.MapFS{"index.html": {Data: []byte("<html></html>")}}
-	ts := httptest.NewServer(New(cfg, store.New(db, m), m, static, "1.2.3+abc").Handler())
+	ts := httptest.NewServer(New(cfg, store.New(db, m), m, static, archiveorg.New(archiveURL, "comics-test"), "1.2.3+abc").Handler())
 	t.Cleanup(ts.Close)
 
 	jar, _ := cookiejar.New(nil)

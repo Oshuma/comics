@@ -12,16 +12,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Oshuma/comics/internal/archiveorg"
 	"github.com/Oshuma/comics/internal/config"
 	"github.com/Oshuma/comics/internal/media"
 	"github.com/Oshuma/comics/internal/store"
 )
 
 type Server struct {
-	cfg    *config.Config
-	store  *store.Store
-	media  *media.Storage
-	static fs.FS
+	cfg     *config.Config
+	store   *store.Store
+	media   *media.Storage
+	static  fs.FS
+	archive *archiveorg.Client
 	// Reported by /api/status.
 	version string
 
@@ -29,8 +31,8 @@ type Server struct {
 	setupMu sync.Mutex
 }
 
-func New(cfg *config.Config, st *store.Store, m *media.Storage, static fs.FS, version string) *Server {
-	return &Server{cfg: cfg, store: st, media: m, static: static, version: version}
+func New(cfg *config.Config, st *store.Store, m *media.Storage, static fs.FS, archive *archiveorg.Client, version string) *Server {
+	return &Server{cfg: cfg, store: st, media: m, static: static, archive: archive, version: version}
 }
 
 func (s *Server) Handler() http.Handler {
@@ -64,6 +66,9 @@ func (s *Server) Handler() http.Handler {
 
 	user("GET /api/pages/{id}/image", s.handlePageImage)
 	user("GET /api/pages/{id}/thumb", s.handlePageThumb)
+
+	user("GET /api/archive/search", s.handleArchiveSearch)
+	user("POST /api/archive/import", s.handleArchiveImport)
 
 	user("GET /api/history", s.handleHistory)
 	user("GET /api/stats", s.handleStats)
