@@ -334,3 +334,44 @@ func TestRenameComic(t *testing.T) {
 		t.Fatal("unexpected PrettyName result")
 	}
 }
+
+func TestHistoryOutlivesComicsAndGroups(t *testing.T) {
+	s, m, _ := newTestStore(t)
+	ctx := context.Background()
+	u := createUser(t, s, "a@example.com")
+	g, _ := s.CreateGroup(ctx, u.ID, "Saga")
+	c1 := createComic(t, s, m, u.ID, g.ID, "Saga 01.cbz", 1)
+	c2 := createComic(t, s, m, u.ID, g.ID, "Saga 02.cbz", 1)
+	for _, c := range []*Comic{c1, c2} {
+		if err := s.FinishComic(ctx, u.ID, c.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	check := func(step string, wantGroup bool, wantComics map[string]bool) {
+		t.Helper()
+		items, total, err := s.ListHistory(ctx, u.ID, 1)
+		if err != nil || total != 2 || len(items) != 2 {
+			t.Fatalf("%s: expected both entries kept, got %d %+v %v", step, total, items, err)
+		}
+		for _, h := range items {
+			if h.GroupName != "Saga" || (h.GroupID != nil) != wantGroup || (h.ComicID != nil) != wantComics[h.ComicName] {
+				t.Fatalf("%s: unexpected entry %+v", step, h)
+			}
+		}
+	}
+	check("before", true, map[string]bool{"Saga 01.cbz": true, "Saga 02.cbz": true})
+
+	if err := s.DeleteComic(ctx, u.ID, c1.ID); err != nil {
+		t.Fatal(err)
+	}
+	check("after deleting a comic", true, map[string]bool{"Saga 02.cbz": true})
+
+	if err := s.DeleteReadComics(ctx, u.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.DeleteGroup(ctx, u.ID, g.ID); err != nil {
+		t.Fatal(err)
+	}
+	check("after deleting the group", false, map[string]bool{})
+}
