@@ -56,7 +56,7 @@ export interface ArchiveFile {
   size: number
 }
 
-export type ArchiveSort = 'relevance' | 'downloads' | 'newest' | 'title'
+export type ArchiveSort = 'relevance' | 'downloads' | 'newest' | 'title' | 'size'
 
 export interface ArchiveResults {
   files: ArchiveFile[]
@@ -201,6 +201,7 @@ export const api = {
   deleteImport: (id: number) => del<OK>(`/imports/${id}`),
   renameComic: (id: number, name: string) => patch<OK>(`/comics/${id}`, { name }),
   moveComic: (id: number, groupId: number) => put<OK>(`/comics/${id}/group`, { groupId }),
+  setComicRead: (id: number, read: boolean) => put<OK>(`/comics/${id}/read`, { read }),
   finishComic: (id: number) =>
     put<{ groupId: number; nextComicId: number | null }>(`/comics/${id}/finish`),
   resumeComic: (id: number) => get<{ pageId: number | null }>(`/comics/${id}/resume`),

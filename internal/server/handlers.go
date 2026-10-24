@@ -203,6 +203,32 @@ func (s *Server) handleFinishComic(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"groupId": comic.GroupID, "nextComicId": next})
 }
 
+// handleSetComicRead marks every page of the comic read or unread.
+func (s *Server) handleSetComicRead(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r, "id")
+	if !ok {
+		return
+	}
+	var req struct {
+		Read bool `json:"read"`
+	}
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	userID := currentUser(r).ID
+	var err error
+	if req.Read {
+		err = s.store.FinishComic(r.Context(), userID, id)
+	} else {
+		err = s.store.MarkComicUnread(r.Context(), userID, id)
+	}
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeOK(w)
+}
+
 // handleResumeComic returns the first unread page (null if the comic is read).
 func (s *Server) handleResumeComic(w http.ResponseWriter, r *http.Request) {
 	id, ok := pathID(w, r, "id")

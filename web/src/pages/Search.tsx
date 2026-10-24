@@ -97,6 +97,7 @@ const sortLabels: Record<ArchiveSort, string> = {
   downloads: 'Most downloaded',
   newest: 'Newest',
   title: 'Title',
+  size: 'Largest',
 }
 
 const isSort = (s: string | null): s is ArchiveSort => !!s && s in sortLabels

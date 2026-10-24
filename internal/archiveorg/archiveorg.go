@@ -3,6 +3,7 @@
 package archiveorg
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,6 +14,7 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -108,6 +110,7 @@ var sorts = map[string]string{
 	"downloads": "downloads desc",
 	"newest":    "addeddate desc",
 	"title":     "titleSorter asc",
+	"size":      "item_size desc",
 }
 
 // fieldSyntax matches a Lucene field query like creator:"Frank Miller" or
@@ -145,7 +148,9 @@ func escapeQuery(s string) string {
 }
 
 // Search finds items containing CBR/CBZ files and lists those files. sort is
-// "downloads", "newest", "title", or anything else for relevance.
+// "downloads", "newest", "title", "size", or anything else for relevance.
+// archive.org can only sort by whole item size, so for "size" the files on
+// each page are also ordered largest first.
 func (c *Client) Search(ctx context.Context, query string, page int, sort string) (*Results, error) {
 	query = strings.TrimSpace(query)
 	if query == "" {
@@ -203,6 +208,9 @@ func (c *Client) Search(ctx context.Context, query string, page int, sort string
 	results := &Results{Files: []File{}, TotalItems: resp.Response.NumFound, Page: page, PerPage: PerPage}
 	for _, files := range itemFiles {
 		results.Files = append(results.Files, files...)
+	}
+	if sort == "size" {
+		slices.SortStableFunc(results.Files, func(a, b File) int { return cmp.Compare(b.Size, a.Size) })
 	}
 	return results, nil
 }

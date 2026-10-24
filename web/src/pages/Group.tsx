@@ -49,6 +49,16 @@ function useComicActions({ comic, onChanged }: ComicProps) {
     }
   }
 
+  const setRead = async (read: boolean) => {
+    try {
+      await api.setComicRead(comic.id, read)
+      flash('success', read ? 'Comic marked read.' : 'Comic marked unread.')
+      onChanged()
+    } catch (err) {
+      flash('danger', errorMessage(err))
+    }
+  }
+
   const remove = async () => {
     if (!window.confirm('Delete comic?')) return
     try {
@@ -60,7 +70,7 @@ function useComicActions({ comic, onChanged }: ComicProps) {
     }
   }
 
-  return { read, move, remove, rename }
+  return { read, setRead, move, remove, rename }
 }
 
 // Options menu for a comic, shared by the tile and table views.
@@ -76,7 +86,7 @@ function ComicMenu({
   // Which edge of the gear button the menu lines up with.
   align?: 'start' | 'end'
 }) {
-  const { move, remove, rename } = actions
+  const { setRead, move, remove, rename } = actions
   const others = groups.filter((g) => g.id !== comic.groupId)
   return (
     <>
@@ -85,13 +95,31 @@ function ComicMenu({
           <Icon name="gear" />
         </Dropdown.Toggle>
         <Dropdown.Menu className="dropdown-menu-scroll">
+          {!comic.read && (
+            <Dropdown.Item onClick={() => setRead(true)}>
+              <Icon name="check-circle" className="me-2" />
+              Mark Read
+            </Dropdown.Item>
+          )}
+          {(comic.read || comic.reading) && (
+            <Dropdown.Item onClick={() => setRead(false)}>
+              <Icon name="circle" className="me-2" />
+              Mark Unread
+            </Dropdown.Item>
+          )}
+          <Dropdown.Divider />
           <Dropdown.Item as={Link} to={`/comics/${comic.id}`}>
             <Icon name="grid-3x3-gap" className="me-2" />
             View Pages
           </Dropdown.Item>
+          <Dropdown.Divider />
           <Dropdown.Item onClick={rename.open}>
             <Icon name="pencil" className="me-2" />
             Rename Comic
+          </Dropdown.Item>
+          <Dropdown.Item className="text-danger" onClick={remove}>
+            <Icon name="trash" className="me-2" />
+            Delete Comic
           </Dropdown.Item>
           {others.length > 0 && (
             <>
@@ -105,11 +133,6 @@ function ComicMenu({
               ))}
             </>
           )}
-          <Dropdown.Divider />
-          <Dropdown.Item className="text-danger" onClick={remove}>
-            <Icon name="trash" className="me-2" />
-            Delete Comic
-          </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
       {rename.modal}

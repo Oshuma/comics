@@ -227,6 +227,15 @@ func (s *Store) FinishComic(ctx context.Context, userID, comicID int) error {
 	return s.RecordHistory(ctx, userID, c.GroupName, c.Filename)
 }
 
+// MarkComicUnread marks every page of the comic unread.
+func (s *Store) MarkComicUnread(ctx context.Context, userID, comicID int) error {
+	if _, err := s.comicOwned(ctx, userID, comicID); err != nil {
+		return err
+	}
+	_, err := s.db.ExecContext(ctx, `UPDATE pages SET read = 0 WHERE comic_id = ? AND read`, comicID)
+	return err
+}
+
 // FirstUnreadPage returns the ID of the comic's first unread page, or nil.
 func (s *Store) FirstUnreadPage(ctx context.Context, userID, comicID int) (*int, error) {
 	if _, err := s.comicOwned(ctx, userID, comicID); err != nil {

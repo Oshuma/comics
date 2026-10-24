@@ -202,6 +202,7 @@ func TestSearchSort(t *testing.T) {
 		"downloads": "downloads desc",
 		"newest":    "addeddate desc",
 		"title":     "titleSorter asc",
+		"size":      "item_size desc",
 		"relevance": "",
 		"bogus":     "",
 	} {
@@ -211,6 +212,17 @@ func TestSearchSort(t *testing.T) {
 		if got := searchParam("sort[]"); got != want {
 			t.Errorf("sort %q: sent %q, want %q", sort, got, want)
 		}
+	}
+}
+
+func TestSearchSizeOrdersFiles(t *testing.T) {
+	c, _ := fakeArchive(t)
+	res, err := c.Search(context.Background(), "batman", 1, "size")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Files) != 2 || res.Files[0].Size != 22 || res.Files[1].Size != 11 {
+		t.Fatalf("files not ordered largest first: %+v", res.Files)
 	}
 }
 

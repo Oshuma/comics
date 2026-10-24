@@ -11,6 +11,16 @@ function ComicView({ comic, reload }: { comic: ComicDetail; reload: () => void }
   const navigate = useNavigate()
   const rename = useRenameComic(comic, reload)
 
+  const setRead = async (read: boolean) => {
+    try {
+      await api.setComicRead(comic.id, read)
+      flash('success', read ? 'Comic marked read.' : 'Comic marked unread.')
+      reload()
+    } catch (err) {
+      flash('danger', errorMessage(err))
+    }
+  }
+
   const remove = async () => {
     if (!window.confirm('Delete comic?')) return
     try {
@@ -35,11 +45,23 @@ function ComicView({ comic, reload }: { comic: ComicDetail; reload: () => void }
 
   const manage = (
     <>
+      {!comic.read && (
+        <NavDropdown.Item onClick={() => setRead(true)}>
+          <Icon name="check-circle" className="me-2" />
+          Mark Read
+        </NavDropdown.Item>
+      )}
+      {(comic.read || comic.reading) && (
+        <NavDropdown.Item onClick={() => setRead(false)}>
+          <Icon name="circle" className="me-2" />
+          Mark Unread
+        </NavDropdown.Item>
+      )}
+      <NavDropdown.Divider />
       <NavDropdown.Item onClick={rename.open}>
         <Icon name="pencil" className="me-2" />
         Rename Comic
       </NavDropdown.Item>
-      <NavDropdown.Divider />
       <NavDropdown.Item onClick={remove} className="text-danger">
         <Icon name="trash" className="me-2" />
         Delete Comic

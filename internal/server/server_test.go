@@ -203,6 +203,24 @@ func TestUploadAndRead(t *testing.T) {
 	}
 
 	path = "/api/comics/" + strconv.Itoa(comic.ID)
+	if code := c.json("PUT", path+"/read", map[string]bool{"read": false}, nil); code != http.StatusOK {
+		t.Fatalf("mark unread: %d", code)
+	}
+	c.do("GET", path, nil, "", &detail)
+	if detail.Read || detail.Reading {
+		t.Fatalf("after mark unread: %+v", detail.Comic)
+	}
+	if code := c.json("PUT", path+"/read", map[string]bool{"read": true}, nil); code != http.StatusOK {
+		t.Fatalf("mark read: %d", code)
+	}
+	c.do("GET", path, nil, "", &detail)
+	if !detail.Read {
+		t.Fatalf("after mark read: %+v", detail.Comic)
+	}
+	if code := c.json("PUT", "/api/comics/99999/read", map[string]bool{"read": false}, nil); code != http.StatusNotFound {
+		t.Fatalf("mark unread missing comic: %d", code)
+	}
+
 	if code := c.json("PATCH", path, map[string]string{"name": "Saga #1"}, nil); code != http.StatusOK {
 		t.Fatalf("rename: %d", code)
 	}
