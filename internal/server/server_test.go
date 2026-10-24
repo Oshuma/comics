@@ -284,3 +284,31 @@ func TestImportJobs(t *testing.T) {
 		t.Fatalf("after dismiss: %+v", jobs)
 	}
 }
+
+func TestChangePassword(t *testing.T) {
+	c := newTestServer(t)
+	user := map[string]string{"email": "admin@example.com", "password": "password1", "passwordConfirmation": "password1"}
+	c.json("POST", "/api/setup", user, nil)
+
+	change := map[string]string{"currentPassword": "wrong", "password": "newpassword", "passwordConfirmation": "newpassword"}
+	if code := c.json("PUT", "/api/account/password", change, nil); code != http.StatusUnprocessableEntity {
+		t.Fatalf("wrong current password: %d", code)
+	}
+	change["currentPassword"] = "password1"
+	if code := c.json("PUT", "/api/account/password", change, nil); code != http.StatusOK {
+		t.Fatalf("change password: %d", code)
+	}
+
+	// The session that changed the password stays signed in.
+	if code := c.do("GET", "/api/groups", nil, "", nil); code != http.StatusOK {
+		t.Fatalf("session after change: %d", code)
+	}
+
+	c.do("DELETE", "/api/session", nil, "", nil)
+	if code := c.json("POST", "/api/session", map[string]string{"email": "admin@example.com", "password": "password1"}, nil); code != http.StatusUnauthorized {
+		t.Fatalf("login with old password: %d", code)
+	}
+	if code := c.json("POST", "/api/session", map[string]string{"email": "admin@example.com", "password": "newpassword"}, nil); code != http.StatusOK {
+		t.Fatalf("login with new password: %d", code)
+	}
+}

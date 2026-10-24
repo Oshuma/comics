@@ -104,6 +104,10 @@ export default function Layout({ nav, actions, manage, quickLinks = true, title,
                       <Icon name="bar-chart" className="me-2" />
                       Stats
                     </NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/settings">
+                      <Icon name="person-gear" className="me-2" />
+                      Settings
+                    </NavDropdown.Item>
                     <NavDropdown.Item as="button" onClick={toggleTheme}>
                       <Icon name={theme === 'dark' ? 'sun' : 'moon-stars'} className="me-2" />
                       {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}

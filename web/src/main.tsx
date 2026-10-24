@@ -19,6 +19,7 @@ import Upload from './pages/Upload'
 import Search from './pages/Search'
 import HistoryPage from './pages/History'
 import Stats from './pages/Stats'
+import Settings from './pages/Settings'
 import Admin from './pages/Admin'
 
 // Redirects to setup or login as needed before rendering app routes.
@@ -52,6 +53,7 @@ const router = createBrowserRouter([
       { path: '/search', element: <Search /> },
       { path: '/history', element: <HistoryPage /> },
       { path: '/stats', element: <Stats /> },
+      { path: '/settings', element: <Settings /> },
     ],
   },
   {

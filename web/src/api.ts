@@ -161,6 +161,12 @@ const del = <T>(path: string) => request<T>('DELETE', path)
 
 type OK = { ok: true }
 
+export interface PasswordChange {
+  currentPassword: string
+  password: string
+  passwordConfirmation: string
+}
+
 export interface NewUser {
   email: string
   password: string
@@ -174,6 +180,7 @@ export const api = {
   login: (email: string, password: string, remember: boolean) =>
     post<User>('/session', { email, password, remember }),
   logout: () => del<OK>('/session'),
+  changePassword: (change: PasswordChange) => put<OK>('/account/password', change),
 
   groups: () => get<Group[]>('/groups'),
   group: (id: number) => get<{ group: Group; comics: Comic[] }>(`/groups/${id}`),

@@ -46,6 +46,22 @@ func normalizeEmail(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
 }
 
+func validatePassword(password, confirmation string) []string {
+	var msgs []string
+	switch {
+	case password == "":
+		msgs = append(msgs, "Password can't be blank")
+	case len(password) < 8:
+		msgs = append(msgs, "Password is too short (minimum is 8 characters)")
+	case len(password) > 72:
+		msgs = append(msgs, "Password is too long (maximum is 72 characters)")
+	}
+	if password != confirmation {
+		msgs = append(msgs, "Password confirmation doesn't match Password")
+	}
+	return msgs
+}
+
 func (s *Store) CountUsers(ctx context.Context) (int, error) {
 	var n int
 	err := s.db.QueryRowContext(ctx, `SELECT count(*) FROM users`).Scan(&n)
@@ -62,17 +78,7 @@ func (s *Store) CreateUser(ctx context.Context, u NewUser) (*User, error) {
 	case !emailRegexp.MatchString(email):
 		msgs = append(msgs, "Email is invalid")
 	}
-	switch {
-	case u.Password == "":
-		msgs = append(msgs, "Password can't be blank")
-	case len(u.Password) < 8:
-		msgs = append(msgs, "Password is too short (minimum is 8 characters)")
-	case len(u.Password) > 72:
-		msgs = append(msgs, "Password is too long (maximum is 72 characters)")
-	}
-	if u.Password != u.PasswordConfirmation {
-		msgs = append(msgs, "Password confirmation doesn't match Password")
-	}
+	msgs = append(msgs, validatePassword(u.Password, u.PasswordConfirmation)...)
 	if len(msgs) > 0 {
 		return nil, invalid(msgs...)
 	}
@@ -126,6 +132,48 @@ func (s *Store) Authenticate(ctx context.Context, email, password string) (*User
 		return nil, ErrNotFound
 	}
 	return u, nil
+}
+
+type PasswordChange struct {
+	CurrentPassword      string `json:"currentPassword"`
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"passwordConfirmation"`
+}
+
+// ChangePassword verifies the current password, sets the new one, and signs
+// out every other session of the user except keepToken.
+func (s *Store) ChangePassword(ctx context.Context, userID int, c PasswordChange, keepToken string) error {
+	var hash string
+	err := s.db.QueryRowContext(ctx, `SELECT password_hash FROM users WHERE id = ?`, userID).Scan(&hash)
+	if err != nil {
+		return notFound(err)
+	}
+	if bcrypt.CompareHashAndPassword([]byte(hash), []byte(c.CurrentPassword)) != nil {
+		return invalid("Current password is incorrect")
+	}
+	if msgs := validatePassword(c.Password, c.PasswordConfirmation); len(msgs) > 0 {
+		return invalid(msgs...)
+	}
+
+	newHash, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcryptCost)
+	if err != nil {
+		return err
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err := requireAffected(tx.ExecContext(ctx,
+		`UPDATE users SET password_hash = ? WHERE id = ?`, string(newHash), userID)); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`DELETE FROM sessions WHERE user_id = ? AND token_hash != ?`, userID, hashToken(keepToken)); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (s *Store) ListUsers(ctx context.Context, page int) ([]User, int, error) {

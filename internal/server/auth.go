@@ -166,3 +166,21 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	})
 	writeOK(w)
 }
+
+// handleChangePassword updates the signed-in user's password and signs out
+// their other sessions.
+func (s *Server) handleChangePassword(w http.ResponseWriter, r *http.Request) {
+	var req store.PasswordChange
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	var token string
+	if c, err := r.Cookie(sessionCookie); err == nil {
+		token = c.Value
+	}
+	if err := s.store.ChangePassword(r.Context(), currentUser(r).ID, req, token); err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeOK(w)
+}

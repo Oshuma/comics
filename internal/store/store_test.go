@@ -132,6 +132,30 @@ func TestUsersAndSessions(t *testing.T) {
 		t.Fatalf("expected deleted session to be rejected, got %v", err)
 	}
 
+	keep, _ := s.CreateSession(ctx, u.ID, time.Hour)
+	other, _ := s.CreateSession(ctx, u.ID, time.Hour)
+	if err := s.ChangePassword(ctx, u.ID, PasswordChange{CurrentPassword: "wrong", Password: "newpassword", PasswordConfirmation: "newpassword"}, keep); !errors.As(err, &verr) {
+		t.Fatalf("expected wrong current password to fail, got %v", err)
+	}
+	if err := s.ChangePassword(ctx, u.ID, PasswordChange{CurrentPassword: "password1", Password: "short", PasswordConfirmation: "short"}, keep); !errors.As(err, &verr) {
+		t.Fatalf("expected short password to fail, got %v", err)
+	}
+	if err := s.ChangePassword(ctx, u.ID, PasswordChange{CurrentPassword: "password1", Password: "newpassword", PasswordConfirmation: "newpassword"}, keep); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Authenticate(ctx, "alice@example.com", "password1"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected old password to fail, got %v", err)
+	}
+	if _, err := s.Authenticate(ctx, "alice@example.com", "newpassword"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.SessionUser(ctx, keep); err != nil {
+		t.Fatalf("expected current session to survive, got %v", err)
+	}
+	if _, err := s.SessionUser(ctx, other); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected other session to be signed out, got %v", err)
+	}
+
 	if err := s.SetAdmin(ctx, u.ID, true); err != nil {
 		t.Fatal(err)
 	}

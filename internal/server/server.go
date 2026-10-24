@@ -48,6 +48,8 @@ func (s *Server) Handler() http.Handler {
 	user := func(pattern string, h http.HandlerFunc) { mux.Handle(pattern, s.requireUser(h)) }
 	admin := func(pattern string, h http.HandlerFunc) { mux.Handle(pattern, s.requireUser(s.requireAdmin(h))) }
 
+	user("PUT /api/account/password", s.handleChangePassword)
+
 	user("GET /api/groups", s.handleListGroups)
 	user("POST /api/groups", s.handleCreateGroup)
 	user("GET /api/groups/{id}", s.handleGetGroup)
