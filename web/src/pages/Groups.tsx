@@ -8,11 +8,13 @@ import {
   EmptyState,
   Icon,
   LoadError,
+  NameModal,
   ReadState,
   Spinner,
   Thumb,
   UploadButton,
   useLoad,
+  useStoredFlag,
   useViewMode,
   ViewToggle,
 } from '../components/Common'
@@ -83,30 +85,33 @@ function GroupRow({ group, reload }: { group: Group; reload: () => void }) {
 export default function Groups() {
   const flash = useFlash()
   const { data: groups, error, reload } = useLoad(api.groups, [])
-  const [showEmpty, setShowEmpty] = useState(false)
+  const [showEmpty, setShowEmpty] = useStoredFlag('show-empty-groups')
+  const [creating, setCreating] = useState(false)
   const [view, setView] = useViewMode('groups-view')
 
-  const removeRead = async () => {
-    if (!window.confirm('Remove all read comics?')) return
+  // New groups are empty, so show empty groups to keep the new one visible.
+  const createGroup = async (name: string) => {
     try {
-      await api.deleteReadComics()
-      flash('success', 'Read comics removed.')
+      await api.createGroup(name)
+      flash('success', 'Group added.')
+      setCreating(false)
+      setShowEmpty(true)
       reload()
     } catch (err) {
-      flash('danger', errorMessage(err))
+      flash('danger', `There was a problem adding that group: ${errorMessage(err)}`)
     }
   }
 
   const manage = (
     <>
-      <NavDropdown.Item onClick={() => setShowEmpty((v) => !v)}>
-        <Icon name={showEmpty ? 'toggle-on' : 'toggle-off'} className="me-2" />
-        {showEmpty ? 'Hide' : 'Show'} Empty Groups
+      <NavDropdown.Item onClick={() => setCreating(true)}>
+        <Icon name="plus-lg" className="me-2" />
+        New Group
       </NavDropdown.Item>
       <NavDropdown.Divider />
-      <NavDropdown.Item onClick={removeRead}>
-        <Icon name="eye-slash" className="me-2" />
-        Remove Read Comics
+      <NavDropdown.Item onClick={() => setShowEmpty(!showEmpty)}>
+        <Icon name={showEmpty ? 'toggle-on' : 'toggle-off'} className="me-2" />
+        {showEmpty ? 'Hide' : 'Show'} Empty Groups
       </NavDropdown.Item>
     </>
   )
@@ -168,6 +173,13 @@ export default function Groups() {
   return (
     <Layout actions={actions} manage={manage}>
       {content}
+      <NameModal
+        show={creating}
+        title="New Group"
+        placeholder="Group name..."
+        onHide={() => setCreating(false)}
+        onSave={createGroup}
+      />
     </Layout>
   )
 }

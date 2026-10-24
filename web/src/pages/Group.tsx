@@ -5,13 +5,11 @@ import { api, errorMessage, resumePath, type Comic, type Group } from '../api'
 import { useFlash } from '../context'
 import Layout from '../components/Layout'
 import {
-  EmptyState,
   Icon,
   LoadError,
   ReadState,
   Spinner,
   Thumb,
-  UploadButton,
   useLoad,
   useViewMode,
   ViewToggle,
@@ -191,6 +189,34 @@ function ComicRow(props: ComicProps) {
   )
 }
 
+function EmptyGroup({ group }: { group: Group }) {
+  return (
+    <div className="row justify-content-center">
+      <div className="col-md-8 col-lg-6">
+        <div className="card card-body empty-group text-center py-5 px-4">
+          <div className="empty-group-icon mx-auto mb-3">
+            <Icon name="collection" />
+          </div>
+          <h2 className="h4 text-break">{group.name} is empty</h2>
+          <p className="text-body-secondary mb-4">
+            Upload CBZ or CBR files from your computer, or find something to import on archive.org.
+          </p>
+          <div className="d-flex flex-wrap justify-content-center gap-2">
+            <Link to={`/upload?group_id=${group.id}`} className="btn btn-primary btn-lg">
+              <Icon name="cloud-upload" className="me-2" />
+              Upload Comics
+            </Link>
+            <Link to={`/search?group_id=${group.id}`} className="btn btn-outline-secondary btn-lg">
+              <Icon name="search" className="me-2" />
+              Search archive.org
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function GroupView({ group, comics, groups, reload }: { group: Group; comics: Comic[]; groups: Group[]; reload: () => void }) {
   const navigate = useNavigate()
   const { items, modal } = useGroupMenu({
@@ -243,11 +269,7 @@ function GroupView({ group, comics, groups, reload }: { group: Group; comics: Co
           )}
         </>
       ) : (
-        <EmptyState title="No Comics">
-          <p>
-            <UploadButton groupId={group.id} />
-          </p>
-        </EmptyState>
+        <EmptyGroup group={group} />
       )}
       {modal}
     </Layout>

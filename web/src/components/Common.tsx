@@ -179,6 +179,29 @@ export function useViewMode(key: string) {
   return [view, change] as const
 }
 
+// A boolean setting remembered per browser under key.
+export function useStoredFlag(key: string) {
+  const [value, setValue] = useState(() => {
+    try {
+      return localStorage.getItem(key) === 'true'
+    } catch {
+      return false
+    }
+  })
+  const change = useCallback(
+    (v: boolean) => {
+      setValue(v)
+      try {
+        localStorage.setItem(key, String(v))
+      } catch {
+        // Not persisted; the choice still applies for this visit.
+      }
+    },
+    [key],
+  )
+  return [value, change] as const
+}
+
 export function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
   const option = (v: ViewMode, title: string, icon: string) => (
     <Button variant="outline-secondary" active={view === v} aria-pressed={view === v} onClick={() => onChange(v)} title={title}>

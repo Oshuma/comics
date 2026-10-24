@@ -207,7 +207,7 @@ export default function Search() {
   const sortParam = params.get('sort')
   const sort: ArchiveSort = isSort(sortParam) ? sortParam : 'relevance'
   const [input, setInput] = useState(q)
-  const [groupId, setGroupId] = useState('')
+  const [groupId, setGroupId] = useState(params.get('group_id') ?? '')
   const [creating, setCreating] = useState(false)
   // Requests in flight, or rejected before a job was created.
   const [requests, setRequests] = useState<Record<string, ImportState>>({})
@@ -225,9 +225,10 @@ export default function Search() {
   const go = (query: string, p: number, s: ArchiveSort) =>
     setParams({ q: query, ...(p > 1 && { page: String(p) }), ...(s !== 'relevance' && { sort: s }) })
 
-  // Start fresh with no group when the search is cleared, e.g. from the navbar icon.
+  // Start fresh when the search is cleared, e.g. from the navbar icon, keeping
+  // a group passed in the URL.
   useEffect(() => {
-    if (!q) setGroupId('')
+    if (!q) setGroupId(params.get('group_id') ?? '')
   }, [q])
 
   // Ignore a group that has since been deleted.
